@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Schools &amp; Teachers — Lunch Box Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    .skip-link{position:absolute;top:-100%;left:12px;background:#ec7229;color:#fff;padding:10px 18px;font-size:14px;font-weight:600;border-radius:0 0 6px 6px;text-decoration:none;z-index:9999;transition:top .15s;}.skip-link:focus{top:0;}
+    :focus-visible{outline:3px solid #ec7229;outline-offset:2px;border-radius:3px;}
+    :root{--sidebar-w:256px;--header-h:60px;--sidebar:#0f172a;--sidebar-hover:#1e293b;--green:#9abc10;--green-dk:#7a9c0c;--green-lt:#ecf5d0;--orange:#ec7229;--orange-dk:#d4621f;--orange-lt:#fff4ed;--page-bg:#f1f5f9;--surface:#ffffff;--border:#e2e8f0;--text-1:#0f172a;--text-2:#475569;--text-3:#94a3b8;--red:#dc2626;--red-lt:#fef2f2;--r:8px;--r-lg:12px;--shadow-sm:0 1px 3px rgba(0,0,0,.08);}
+    body{font-family:'Inter',sans-serif;background:var(--page-bg);color:var(--text-1);display:flex;min-height:100vh;}
+    .sidebar{width:var(--sidebar-w);background:var(--sidebar);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;overflow-y:auto;}
+    .sidebar-brand{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.07);}
+    .sidebar-brand-box{display:inline-block;}
+    .sidebar-brand-box img{height:40px;width:auto;display:block;}
+    .sidebar-nav{flex:1;padding:16px 10px;}
+    .nav-group{margin-bottom:20px;}
+    .nav-group-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.3);letter-spacing:.1em;text-transform:uppercase;padding:0 10px;margin-bottom:6px;}
+    .nav-link{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;color:rgba(255,255,255,.65);font-size:14px;font-weight:500;text-decoration:none;position:relative;transition:background .12s,color .12s;margin-bottom:5px;}
+    .nav-link svg{width:18px;height:18px;flex-shrink:0;stroke-width:1.75;}
+    .nav-link:hover{background:var(--sidebar-hover);color:#fff;}
+    .nav-link.active{background:var(--sidebar-hover);color:#fff;font-weight:600;}
+    .nav-link.active::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;background:var(--green);border-radius:0 3px 3px 0;}
+    .nav-badge{margin-left:auto;background:var(--orange);color:#fff;font-size:11px;font-weight:700;min-width:18px;height:18px;padding:0 5px;border-radius:9px;display:flex;align-items:center;justify-content:center;}
+    .sidebar-footer{padding:12px 10px;border-top:1px solid rgba(255,255,255,.07);display:flex;flex-direction:column;gap:2px;}
+    .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+    .topbar{height:var(--header-h);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:50;flex-shrink:0;}
+    .breadcrumb{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-2);}
+    .breadcrumb a{color:var(--text-2);text-decoration:none;}.breadcrumb a:hover{color:var(--text-1);}
+    .breadcrumb-sep{color:var(--text-3);}.breadcrumb-current{color:var(--text-1);font-weight:600;}
+    .topbar-left{display:flex;align-items:center;gap:12px;min-width:0;}
+    .topbar-right{display:flex;align-items:center;gap:10px;}
+    .search-box{display:flex;align-items:center;gap:8px;height:36px;background:var(--page-bg);border:1px solid var(--border);border-radius:var(--r);padding:0 12px;transition:border-color .15s;}
+    .search-box:focus-within{border-color:var(--orange);box-shadow:0 0 0 3px rgba(236,114,41,.12);}
+    .search-box svg{width:15px;height:15px;color:var(--text-3);flex-shrink:0;}
+    .search-box input{border:none;background:none;font-size:13px;color:var(--text-1);font-family:'Inter',sans-serif;outline:none;width:180px;}
+    .search-box input::placeholder{color:var(--text-3);}
+    .icon-btn{width:36px;height:36px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-2);position:relative;}
+    .icon-btn svg{width:18px;height:18px;}
+    .badge-dot{position:absolute;top:-3px;right:-3px;width:16px;height:16px;background:var(--orange);border-radius:50%;font-size:9px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;border:2px solid #fff;}
+    .user-chip{display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:var(--r);border:1px solid var(--border);cursor:pointer;font-size:13px;font-weight:500;background:var(--surface);}
+    .user-chip:hover{background:var(--page-bg);}
+    .user-menu{position:relative;}
+    .user-dropdown{display:none;position:absolute;top:calc(100% + 6px);right:0;min-width:160px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 8px 24px rgba(15,23,42,.12);z-index:300;overflow:hidden;padding:4px 0;}
+    .user-dropdown.open{display:block;}
+    .user-dropdown a{display:flex;align-items:center;gap:8px;padding:9px 14px;font-size:13px;color:var(--text-1);text-decoration:none;transition:background .12s;}
+    .user-dropdown a:hover{background:var(--page-bg);}
+    .user-dropdown-divider{height:1px;background:var(--border);margin:4px 0;}
+    input[type="checkbox"]{appearance:none;-webkit-appearance:none;width:16px;height:16px;min-width:16px;border:2px solid #cbd5e1;border-radius:4px;cursor:pointer;background:#fff;position:relative;transition:background .12s,border-color .12s;flex-shrink:0;}
+    input[type="checkbox"]:checked{background:var(--orange);border-color:var(--orange);}
+    input[type="checkbox"]:checked::after{content:'';position:absolute;left:3px;top:0px;width:5px;height:9px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg);}
+    input[type="checkbox"]:focus-visible{outline:3px solid rgba(236,114,41,.4);outline-offset:2px;}
+    .avatar{width:26px;height:26px;border-radius:50%;background:var(--orange);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .content{padding:28px 28px 40px;flex:1;}
+    .page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;}
+    .page-title{font-size:22px;font-weight:700;}.page-desc{font-size:13px;color:var(--text-2);margin-top:3px;}
+    .btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:var(--r);font-size:14px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;border:1px solid transparent;transition:all .12s;text-decoration:none;line-height:1.4;}
+    .btn svg{width:15px;height:15px;}
+    .btn-primary{background:var(--orange);color:#fff;border-color:var(--orange);}
+    .btn-primary:hover{background:var(--orange-dk);}
+    .btn-secondary{background:var(--surface);color:var(--text-1);border-color:var(--border);}
+    .btn-secondary:hover{background:var(--page-bg);}
+    .btn-success{background:var(--green);color:#1a2500;border-color:var(--green);}
+    .btn-danger{background:var(--red);color:#fff;border-color:var(--red);}
+    .btn-ghost{background:transparent;color:var(--text-2);border:1px solid transparent;}
+    .btn-ghost:hover{background:var(--page-bg);color:var(--text-1);}
+    .btn-sm{padding:5px 11px;font-size:13px;}
+    .btn-xs{padding:3px 8px;font-size:12px;}
+    .tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:24px;}
+    .tab-btn{padding:10px 20px;font-size:14px;font-weight:500;color:var(--text-2);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;}
+    .tab-btn:hover{color:var(--text-1);}.tab-btn.active{color:var(--orange);border-bottom-color:var(--orange);font-weight:600;}
+    .tab-panel{display:none;}.tab-panel.active{display:block;}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);overflow:hidden;}
+    .card-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);}
+    .card-title{font-size:15px;font-weight:600;}
+    .toolbar{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--page-bg);}
+    .search-field{display:flex;align-items:center;gap:8px;height:36px;border:1px solid var(--border);border-radius:var(--r);padding:0 12px;background:var(--surface);transition:border-color .15s;}
+    .search-field:focus-within{border-color:var(--orange);box-shadow:0 0 0 3px rgba(236,114,41,.12);}
+    .search-field svg{width:15px;height:15px;color:var(--text-3);flex-shrink:0;}
+    .search-field input{border:none;background:none;font-size:13px;font-family:'Inter',sans-serif;color:var(--text-1);outline:none;width:210px;}
+    .search-field input::placeholder{color:var(--text-3);}
+    .filter-select{height:36px;border:1px solid var(--border);border-radius:var(--r);padding:0 10px;font-size:13px;font-family:'Inter',sans-serif;color:var(--text-1);background:var(--surface);outline:none;}
+    .filter-select:focus{border-color:var(--orange);}
+    .spacer{flex:1;}
+    .tbl-wrap{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;}
+    thead th{font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;padding:10px 16px;text-align:left;background:var(--page-bg);border-bottom:1px solid var(--border);white-space:nowrap;}
+    tbody td{font-size:14px;color:var(--text-1);padding:14px 16px;border-bottom:1px solid var(--border);vertical-align:middle;}
+    tbody tr:last-child td{border-bottom:none;}
+    tbody tr:hover td{background:#f8fafc;}
+    .td-name{font-weight:600;font-size:14px;}.td-sub{font-size:12px;color:var(--text-2);margin-top:2px;}
+    .badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:12px;font-weight:600;}
+    .badge-green{background:var(--green-lt);color:#3a5a00;}
+    .badge-orange{background:var(--orange-lt);color:#9a3412;}
+    .badge-gray{background:var(--page-bg);color:var(--text-2);}
+    .badge-red{background:var(--red-lt);color:var(--red);}
+    .actions-cell{display:flex;align-items:center;gap:6px;}
+    .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;}
+    .modal{background:var(--surface);border-radius:var(--r-lg);box-shadow:0 20px 60px rgba(0,0,0,.2);width:560px;max-width:100%;max-height:90vh;overflow-y:auto;}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--border);}
+    .modal-title{font-size:17px;font-weight:700;}
+    .modal-close{background:none;border:none;cursor:pointer;font-size:22px;color:var(--text-3);line-height:1;padding:4px;}
+    .modal-close:hover{color:var(--text-1);}
+    .modal-body{padding:24px;}
+    .modal-foot{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+    .form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+    .form-label{font-size:13px;font-weight:600;color:var(--text-1);}
+    .form-label .required{color:var(--red);margin-left:2px;}
+    .form-input,.form-select{height:40px;border:1px solid var(--border);border-radius:var(--r);padding:0 12px;font-size:14px;font-family:'Inter',sans-serif;color:var(--text-1);background:var(--surface);outline:none;transition:border-color .15s;width:100%;}
+    .form-input:focus,.form-select:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(236,114,41,.12);}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    .section-label{font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;margin:20px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+    .icon-action{width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:var(--text-2);transition:all .12s;}
+    .icon-action:hover{background:var(--page-bg);color:var(--text-1);border-color:var(--text-3);}
+    .icon-action.danger:hover{background:var(--red-lt);color:var(--red);border-color:var(--red);}
+    .icon-action svg{width:14px;height:14px;stroke-width:2;}
+    .toggle-wrap{display:flex;align-items:center;gap:10px;}
+    .toggle{position:relative;width:38px;height:22px;flex-shrink:0;}
+    .toggle input{opacity:0;width:0;height:0;position:absolute;}
+    .toggle-track{position:absolute;inset:0;border-radius:11px;background:var(--border);cursor:pointer;transition:background .2s;}
+    .toggle input:checked+.toggle-track{background:var(--green);}
+    .toggle-thumb{position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .2s;pointer-events:none;}
+    .toggle input:checked~.toggle-thumb{transform:translateX(16px);}
+    .school-row{cursor:pointer;user-select:none;}
+    .school-row:hover td{background:#f0f4f8 !important;}
+    .school-expand-row td{padding:0 !important;border-bottom:2px solid var(--border);}
+    .school-expand-inner{padding:12px 20px 16px 44px;background:#f8fafc;}
+    .school-expand-inner table{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+    .school-expand-inner thead th{background:#f1f5f9;font-size:11px;}
+    .school-expand-inner tbody td{font-size:13px;padding:10px 14px;}
+    .school-expand-inner tbody tr:last-child td{border-bottom:none;}
+    .chevron-icon{width:14px;height:14px;flex-shrink:0;transition:transform .2s;color:var(--text-3);}
+    .chevron-icon.open{transform:rotate(90deg);}
+    .teacher-count{font-size:11px;color:var(--text-3);background:var(--page-bg);border:1px solid var(--border);padding:1px 7px;border-radius:10px;margin-left:6px;font-weight:500;}
+  
+    /* ── MOBILE HAMBURGER ── */
+    .hamburger{display:none;width:36px;height:36px;border:none;background:none;cursor:pointer;color:var(--text-1);align-items:center;justify-content:center;flex-shrink:0;border-radius:var(--r);padding:0;}
+    .hamburger:hover{background:var(--page-bg);}
+    .search-btn-mobile{display:none;width:36px;height:36px;border:none;background:none;cursor:pointer;color:var(--text-2);align-items:center;justify-content:center;flex-shrink:0;border-radius:var(--r);padding:0;}
+    .search-btn-mobile:hover{background:var(--page-bg);}
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:99;}
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:900px){
+      body{overflow-x:hidden;}
+      .main{min-width:0;}
+      .sidebar{transform:translateX(-100%);transition:transform .25s ease;z-index:100;}
+      .sidebar.mobile-open{transform:translateX(0);}
+      .sidebar-overlay.mobile-open{display:block;}
+      .main{margin-left:0!important;}
+      .hamburger{display:flex;}
+      .topbar{padding:0 14px;}
+      .content{padding:16px 14px 32px;}
+      .stats-grid{grid-template-columns:1fr!important;}
+      .grid-2{grid-template-columns:1fr!important;}
+      .page-header{flex-direction:column;gap:12px;align-items:flex-start;}
+      .page-header>div:last-child{align-self:flex-start;}
+      .search-box input{width:120px;}
+      .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+      .modal-overlay > div, .modal-overlay > .modal{max-width:calc(100vw - 32px)!important;width:100%!important;margin:0 16px;}
+      .modal{max-width:calc(100vw - 32px)!important;}
+      /* ── STACKED TABLE CARDS ── */
+      .tbl-wrap table{min-width:0;}
+      .tbl-wrap thead{display:none;}
+      .tbl-wrap tr{display:block;border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;padding:4px 0;background:var(--surface);}
+      .tbl-wrap td{display:flex;justify-content:space-between;align-items:flex-start;border:none!important;background:transparent!important;padding:5px 12px;font-size:13px;gap:8px;border-bottom:1px solid var(--page-bg)!important;}
+      .tbl-wrap tr td:last-child{border-bottom:none!important;}
+      .tbl-wrap td::before{content:attr(data-label);font-weight:600;font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.03em;flex-shrink:0;min-width:95px;padding-top:2px;}
+      .tbl-wrap td[data-label=""]{display:none;}
+      .tbl-wrap tr.expand-row,.tbl-wrap tr.school-expand-row{display:none;}
+      .school-row td::before{display:none;}
+      .school-row td{justify-content:flex-start;}
+      .school-row td:first-child>div{width:100%;justify-content:space-between;}
+      .school-chev{order:9;margin-left:auto;}
+      .school-row td:not(:first-child){flex-direction:column;align-items:flex-start;}
+      .school-expand-row>td{display:block!important;padding:0!important;border:none!important;}
+      .school-expand-row>td::before{display:none!important;}
+      .school-expand-inner{padding:8px 0;width:100%;}
+      .school-expand-inner td{display:block!important;width:100%!important;padding:3px 12px!important;border-bottom:1px solid var(--page-bg)!important;box-sizing:border-box;}
+      .school-expand-inner td::before{display:none!important;}
+      .school-expand-inner tr td:last-child{border-bottom:none!important;}
+      .tbl-wrap tfoot tr{display:block;border-top:2px solid var(--border);padding:8px 12px;font-weight:700;}
+      .tbl-wrap tfoot td{border-bottom:none!important;background:transparent!important;}
+    }
+    @media(max-width:520px){
+      .search-box{display:none;}
+      .search-btn-mobile{display:flex;}
+      .topbar-right{gap:6px;}
+      .stats-grid{grid-template-columns:1fr!important;}
+      .card-head{flex-direction:column;align-items:flex-start;gap:8px;}
+    }
+  </style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
+<div class="sidebar-overlay"></div>
+
+<aside class="sidebar" role="navigation" aria-label="Admin navigation">
+  <div class="sidebar-brand"><div class="sidebar-brand-box"><img src="lunchbox-logo-horiz.png" alt="Lunch Box Program" width="148"></div></div>
+  <nav class="sidebar-nav" aria-label="Primary">
+    <div class="nav-group">
+      <div class="nav-group-label" aria-hidden="true">Main</div>
+      <a href="index.html" class="nav-link"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a>
+      <a href="meals-menus.html" class="nav-link"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>Meals &amp; Menus</a>
+      <a href="food-schedule.html" class="nav-link"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path stroke-linecap="round" d="M16 2v4M8 2v4M3 10h18"/></svg>Food Schedule</a>
+      <a href="schools.html" class="nav-link active" aria-current="page"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21V9l9-6 9 6v12M9 21V12h6v9"/></svg>Schools &amp; Teachers</a>
+      <a href="parents.html" class="nav-link"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m4-4a4 4 0 100-8 4 4 0 000 8z"/></svg>Parents &amp; Students</a>
+      <a href="reports.html" class="nav-link"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>Reports</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" aria-hidden="true">System</div>
+      <a href="settings.html" class="nav-link"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>Settings</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <a href="#" class="nav-link"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h5a2 2 0 012 2v1"/></svg>Log Out</a>
+  </div>
+</aside>
+
+<div class="main">
+  <header class="topbar" role="banner">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleMobileNav()" aria-label="Open navigation" aria-expanded="false"><svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      <nav class="breadcrumb" aria-label="Breadcrumb"><a href="index.html">Dashboard</a><span class="breadcrumb-sep" aria-hidden="true">/</span><span class="breadcrumb-current" aria-current="page">Schools &amp; Teachers</span></nav>
+    </div>
+    <div class="topbar-right">
+      <div class="search-box" role="search">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+        <input type="search" placeholder="Search…" aria-label="Search admin">
+      </div>
+      <button class="search-btn-mobile" aria-label="Search" onclick="var sb=this.closest('header').querySelector('.search-box');sb.style.display='flex';sb.querySelector('input').focus();this.style.display='none';"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/></svg></button>
+      <div class="user-menu">
+        <div class="user-chip" role="button" aria-label="Admin user menu" tabindex="0" onclick="toggleUserMenu()" onkeydown="if(event.key==='Enter'||event.key===' ')toggleUserMenu()">
+          <div class="avatar" aria-hidden="true">AD</div>
+          <span>Admin</span>
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px;color:#94a3b8;" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </div>
+        <div class="user-dropdown" id="user-dropdown">
+
+          <a href="#"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h5a2 2 0 012 2v1"/></svg>Log Out</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content" class="content" role="main">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Schools &amp; Teachers</h1>
+        <p class="page-desc">Manage registered schools, locations, and teacher assignments</p>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-secondary" onclick="openModal('teacher-modal')">+ Add Teacher</button>
+        <button class="btn btn-primary" onclick="openModal('school-modal')">+ Add School</button>
+      </div>
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="panel-schools" id="tab-schools" onclick="switchTab('schools')">Schools <span id="school-count-badge" style="margin-left:4px;font-size:12px;background:var(--page-bg);color:var(--text-2);padding:1px 7px;border-radius:10px;">6</span></button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-teachers" id="tab-teachers" onclick="switchTab('teachers')">Teachers <span id="teacher-count-badge" style="margin-left:4px;font-size:12px;background:var(--page-bg);color:var(--text-2);padding:1px 7px;border-radius:10px;">0</span></button>
+    </div>
+
+    <!-- SCHOOLS -->
+    <div id="panel-schools" class="tab-panel active" role="tabpanel" aria-labelledby="tab-schools">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Registered Schools</div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <div class="search-field" role="search"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg><input type="search" placeholder="Search schools…" aria-label="Search schools" oninput="filterTable(this,'schools-body')"></div>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table aria-label="Registered schools">
+            <thead><tr><th scope="col">School Name</th><th scope="col">Admin Email(s)</th><th scope="col">Addon?</th><th scope="col" style="width:80px;">Actions</th></tr></thead>
+            <tbody id="schools-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TEACHERS -->
+    <div id="panel-teachers" class="tab-panel" role="tabpanel" aria-labelledby="tab-teachers">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Teachers</div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <div class="search-field" role="search"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg><input type="search" placeholder="Search teachers…" aria-label="Search teachers" oninput="filterTable(this,'teachers-body')"></div>
+            <select class="filter-select" aria-label="Filter by school" onchange="filterTeacherSchool(this.value)">
+              <option value="">All Schools</option>
+              <option>Greenfield Academy</option>
+              <option>Riverside Elementary</option>
+              <option>Lincoln Middle School</option>
+              <option>Sunset Hills Primary</option>
+              <option>Maple Grove School</option>
+            </select>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table aria-label="Teachers">
+            <thead><tr><th scope="col">Teacher</th><th scope="col">Email</th><th scope="col">School</th><th scope="col">Grade</th><th scope="col">Active</th><th scope="col" style="width:80px;">Actions</th></tr></thead>
+            <tbody id="teachers-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- SCHOOL MODAL -->
+<div id="school-modal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="school-modal-title" onclick="if(event.target===this)closeModal('school-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <h2 class="modal-title" id="school-modal-title">Add School</h2>
+      <button class="modal-close" onclick="closeModal('school-modal')" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label" for="s-name">School Name <span class="required" aria-hidden="true">*</span></label><input type="text" id="s-name" class="form-input" placeholder="e.g. Greenfield Academy"></div>
+      <div class="form-group"><label class="form-label" for="s-fee">Addon <span class="required" aria-hidden="true">*</span></label><input type="text" id="s-fee" class="form-input" placeholder="e.g. 2.50"></div>
+      <div class="form-group">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <label class="form-label" style="margin:0;">Admin Email Addresses</label>
+          <button type="button" onclick="addEmailField()" style="font-size:12px;font-weight:600;color:var(--orange);background:none;border:none;cursor:pointer;padding:0;">+ Add Email</button>
+        </div>
+        <div id="s-emails-list" style="display:flex;flex-direction:column;gap:8px;">
+          <div class="email-row" style="display:flex;gap:8px;align-items:center;">
+            <input type="email" class="form-input" placeholder="admin@school.edu" style="flex:1;">
+            <button type="button" onclick="removeEmailRow(this)" style="background:none;border:none;cursor:pointer;color:var(--text-3);font-size:18px;line-height:1;padding:2px 4px;" aria-label="Remove email">✕</button>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="s-active">Active</label>
+        <div class="toggle-wrap">
+          <label class="toggle"><input type="checkbox" id="s-active" checked><span class="toggle-track"></span><span class="toggle-thumb"></span></label>
+          <span style="font-size:13px;color:var(--text-2);">School is accepting orders</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot" style="justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeModal('school-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal('school-modal')">Save School</button>
+    </div>
+  </div>
+</div>
+
+<!-- TEACHER MODAL -->
+<div id="teacher-modal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="teacher-modal-title" onclick="if(event.target===this)closeModal('teacher-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <h2 class="modal-title" id="teacher-modal-title">Add Teacher</h2>
+      <button class="modal-close" onclick="closeModal('teacher-modal')" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label" for="t-name">Teacher Name <span class="required" aria-hidden="true">*</span></label><input type="text" id="t-name" class="form-input" placeholder="e.g. Ms. Jennifer Clarke"></div>
+      <div class="form-group"><label class="form-label" for="t-email">Email Address <span class="required" aria-hidden="true">*</span></label><input type="email" id="t-email" class="form-input" placeholder="e.g. j.clarke@greenfieldacademy.edu"></div>
+      <div class="form-group"><label class="form-label" for="t-school">School Name <span class="required" aria-hidden="true">*</span></label><select id="t-school" class="form-select"><option value="">Select school…</option><option>Greenfield Academy</option><option>Riverside Elementary</option><option>Lincoln Middle School</option><option>Sunset Hills Primary</option><option>Maple Grove School</option><option>Cedar Park Academy</option></select></div>
+      <div class="form-group"><label class="form-label" for="t-grade">Grade <span class="required" aria-hidden="true">*</span></label><input type="text" id="t-grade" class="form-input" placeholder="e.g. 3rd Grade"></div>
+      <div class="form-group">
+        <label class="form-label" for="t-active">Active</label>
+        <div class="toggle-wrap">
+          <label class="toggle"><input type="checkbox" id="t-active" checked><span class="toggle-track"></span><span class="toggle-thumb"></span></label>
+          <span style="font-size:13px;color:var(--text-2);">Teacher is active in the program</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot" style="justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeModal('teacher-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal('teacher-modal')">Save Teacher</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCHOOL REFUND MODAL
+══════════════════════════════════════ -->
+<div id="school-refund-modal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="school-refund-modal-title" onclick="if(event.target===this)closeModal('school-refund-modal')">
+  <div style="background:var(--surface);border-radius:12px;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(15,23,42,.2);">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 16px;border-bottom:1px solid var(--border);">
+      <h2 style="font-size:17px;font-weight:700;color:var(--text-1);margin:0;" id="school-refund-modal-title">Cancel Order</h2>
+      <button onclick="closeModal('school-refund-modal')" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-3);line-height:1;" aria-label="Close">✕</button>
+    </div>
+    <div style="padding:22px 24px 20px;">
+
+      <!-- School info -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--page-bg);border:1px solid var(--border);border-radius:8px;margin-bottom:20px;">
+        <div>
+          <div id="srf-name" style="font-size:14px;font-weight:600;color:var(--text-1);"></div>
+          <div id="srf-email" style="font-size:12px;color:var(--text-3);margin-top:2px;"></div>
+        </div>
+      </div>
+
+      <!-- Order Date -->
+      <div style="margin-bottom:16px;">
+        <label for="srf-date" style="display:block;font-size:13px;font-weight:600;color:var(--text-2);margin-bottom:6px;">Order Date <span style="color:var(--red);" aria-hidden="true">*</span></label>
+        <input type="date" id="srf-date" class="form-input" style="width:100%;box-sizing:border-box;" aria-label="Order date">
+      </div>
+
+      <!-- Message -->
+      <div style="margin-bottom:20px;">
+        <label for="srf-message" style="display:block;font-size:13px;font-weight:600;color:var(--text-2);margin-bottom:6px;">Message <span style="font-weight:400;color:var(--text-3);">(optional)</span></label>
+        <textarea id="srf-message" class="form-input" rows="3" placeholder="Add a note about this cancellation…" style="resize:vertical;width:100%;box-sizing:border-box;" aria-label="Cancellation message"></textarea>
+      </div>
+
+      <!-- Footer note -->
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-3);margin-bottom:16px;">
+        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Cancellations are logged and cannot be undone.
+      </div>
+
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" onclick="closeModal('school-refund-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="processSchoolRefund()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          Cancel Order
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SCHOOLS = [
+    { name: 'Greenfield Academy',    addon: '$2.50', emails: ['admin@greenfieldacademy.edu'] },
+    { name: 'Riverside Elementary',  addon: '$2.50', emails: ['admin@riverside.edu', 'office@riverside.edu'] },
+    { name: 'Lincoln Middle School', addon: '$3.00', emails: ['lunchcontact@lincoln.edu'] },
+    { name: 'Sunset Hills Primary',  addon: '$2.00', emails: ['admin@sunsethills.edu'] },
+    { name: 'Maple Grove School',    addon: '$2.50', emails: ['admin@maplegrove.edu'] },
+    { name: 'Cedar Park Academy',    addon: '$2.00', emails: ['principal@cedarpark.edu', 'lunch@cedarpark.edu'] },
+  ];
+
+  const TEACHERS = [
+    { name: 'Ms. Jennifer Clarke',  email: 'j.clarke@greenfield.edu',      school: 'Greenfield Academy',    grade: '3rd Grade',   active: true  },
+    { name: 'Mr. Kevin Murphy',     email: 'k.murphy@greenfield.edu',      school: 'Greenfield Academy',    grade: '4th Grade',   active: true  },
+    { name: 'Ms. Sarah Kim',        email: 's.kim@greenfield.edu',         school: 'Greenfield Academy',    grade: '2nd Grade',   active: true  },
+    { name: 'Mr. Tom Bradley',      email: 't.bradley@greenfield.edu',     school: 'Greenfield Academy',    grade: '5th Grade',   active: false },
+    { name: 'Mr. David Rosario',    email: 'd.rosario@riverside.edu',      school: 'Riverside Elementary',  grade: '2nd Grade',   active: true  },
+    { name: 'Mr. James Park',       email: 'j.park@riverside.edu',         school: 'Riverside Elementary',  grade: '5th Grade',   active: true  },
+    { name: 'Ms. Maria Lopez',      email: 'm.lopez@riverside.edu',        school: 'Riverside Elementary',  grade: '3rd Grade',   active: true  },
+    { name: 'Mr. Owen Fletcher',    email: 'o.fletcher@riverside.edu',     school: 'Riverside Elementary',  grade: '4th Grade',   active: false },
+    { name: 'Ms. Priya Nair',       email: 'p.nair@lincoln.edu',           school: 'Lincoln Middle School', grade: '6th Grade',   active: true  },
+    { name: 'Mr. Nathan Webb',      email: 'n.webb@lincoln.edu',           school: 'Lincoln Middle School', grade: '7th Grade',   active: true  },
+    { name: 'Ms. Chloe Andersen',   email: 'c.andersen@lincoln.edu',       school: 'Lincoln Middle School', grade: '8th Grade',   active: true  },
+    { name: 'Ms. Amanda Torres',    email: 'a.torres@sunsetprimary.edu',   school: 'Sunset Hills Primary',  grade: '1st Grade',   active: false },
+    { name: 'Ms. Rachel Greene',    email: 'r.greene@sunsetprimary.edu',   school: 'Sunset Hills Primary',  grade: 'Kindergarten',active: true  },
+    { name: 'Mr. Ben Holloway',     email: 'b.holloway@sunsetprimary.edu', school: 'Sunset Hills Primary',  grade: '2nd Grade',   active: true  },
+    { name: 'Ms. Lisa Hoffman',     email: 'l.hoffman@maplegrove.edu',     school: 'Maple Grove School',    grade: 'Kindergarten',active: true  },
+    { name: 'Mr. Carlos Reyes',     email: 'c.reyes@maplegrove.edu',       school: 'Maple Grove School',    grade: '1st Grade',   active: true  },
+    { name: 'Ms. Diana Wu',         email: 'd.wu@maplegrove.edu',          school: 'Maple Grove School',    grade: '3rd Grade',   active: true  },
+    { name: 'Mr. Steve Morton',     email: 's.morton@cedarpark.edu',       school: 'Cedar Park Academy',    grade: '4th Grade',   active: true  },
+    { name: 'Ms. Janet Yates',      email: 'j.yates@cedarpark.edu',        school: 'Cedar Park Academy',    grade: '2nd Grade',   active: true  },
+    { name: 'Mr. Paul Lin',         email: 'p.lin@cedarpark.edu',          school: 'Cedar Park Academy',    grade: '6th Grade',   active: false },
+    { name: 'Ms. Amy Stokes',       email: 'a.stokes@cedarpark.edu',       school: 'Cedar Park Academy',    grade: 'Kindergarten',active: true  },
+  ];
+
+  const EDIT_SVG   = `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H9v-2a2 2 0 01.586-1.414z"/></svg>`;
+  const DEL_SVG    = `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0h8m-9 0V5a1 1 0 011-1h6a1 1 0 011 1v2"/></svg>`;
+  const CHEVRON    = `<svg class="chevron-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>`;
+
+  function schoolId(name) { return name.toLowerCase().replace(/\s+/g,'-'); }
+
+  function activeBadge(active) {
+    return active
+      ? `<span class="badge badge-green">Active</span>`
+      : `<span class="badge badge-gray">Inactive</span>`;
+  }
+
+  function buildSchoolsTable() {
+    const tbody = document.getElementById('schools-body');
+    let html = '';
+    SCHOOLS.forEach(s => {
+      const sid = schoolId(s.name);
+      const teachers = TEACHERS.filter(t => t.school === s.name);
+      const count = teachers.length;
+      const emailsHtml = (s.emails||[]).map(e => `<a href="mailto:${e}" style="display:block;color:var(--text-2);font-size:12px;text-decoration:none;" onclick="event.stopPropagation();">${e}</a>`).join('');
+      html += `
+        <tr class="school-row" onclick="toggleSchool('${sid}')" aria-expanded="false">
+          <td data-label="School Name">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span id="chev-${sid}" class="school-chev">${CHEVRON}</span>
+              <span class="td-name">${s.name}</span>
+              <span class="teacher-count">${count} teacher${count!==1?'s':''}</span>
+            </div>
+          </td>
+          <td data-label="Admin Email(s)">${emailsHtml || '<span style="color:var(--text-3);font-size:12px;">—</span>'}</td>
+          <td data-label="Addon?">${s.addon}</td>
+          <td data-label="Actions">
+            <div class="actions-cell">
+              <button class="btn btn-ghost btn-xs" style="color:var(--orange);font-weight:600;white-space:nowrap;" onclick="event.stopPropagation();openSchoolRefundModal('${s.name}','${(s.emails||[]).join(', ')}')" aria-label="Cancel order for ${s.name}">Cancel Order</button>
+              <button class="icon-action" onclick="event.stopPropagation();openSchoolModal(${SCHOOLS.indexOf(s)})" aria-label="Edit ${s.name}">${EDIT_SVG}</button>
+              <button class="icon-action danger" onclick="event.stopPropagation();" aria-label="Delete ${s.name}">${DEL_SVG}</button>
+            </div>
+          </td>
+        </tr>
+        <tr id="expand-${sid}" class="school-expand-row" style="display:none;">
+          <td colspan="4">
+            <div class="school-expand-inner">
+              ${count === 0 ? '<p style="font-size:13px;color:var(--text-3);padding:8px 0;">No teachers assigned to this school yet.</p>' : `
+              <table style="width:100%;border-collapse:collapse;">
+                <thead>
+                  <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Grade</th>
+                    <th scope="col">Status</th>
+                    <th scope="col" style="width:70px;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${teachers.map(t => `
+                  <tr>
+                    <td style="font-weight:600;">${t.name}</td>
+                    <td><a href="mailto:${t.email}" style="color:var(--text-2);font-size:13px;text-decoration:none;" onclick="event.stopPropagation();">${t.email}</a></td>
+                    <td style="font-size:13px;color:var(--text-2);">${t.grade}</td>
+                    <td>${activeBadge(t.active)}</td>
+                    <td>
+                      <div class="actions-cell">
+                        <button class="icon-action" onclick="event.stopPropagation();openModal('teacher-modal')" aria-label="Edit ${t.name}">${EDIT_SVG}</button>
+                        <button class="icon-action danger" onclick="event.stopPropagation();" aria-label="Delete ${t.name}">${DEL_SVG}</button>
+                      </div>
+                    </td>
+                  </tr>`).join('')}
+                </tbody>
+              </table>`}
+            </div>
+          </td>
+        </tr>`;
+    });
+    tbody.innerHTML = html;
+    document.getElementById('school-count-badge').textContent = SCHOOLS.length;
+  }
+
+  function buildTeachersTable() {
+    const tbody = document.getElementById('teachers-body');
+    tbody.innerHTML = TEACHERS.map(t => `
+      <tr data-school="${t.school.toLowerCase()}">
+        <td class="td-name" data-label="Teacher">${t.name}</td>
+        <td data-label="Email"><a href="mailto:${t.email}" style="font-size:13px;color:var(--text-2);text-decoration:none;">${t.email}</a></td>
+        <td data-label="School" style="font-size:13px;color:var(--text-2);">${t.school}</td>
+        <td data-label="Grade" style="font-size:13px;color:var(--text-2);">${t.grade}</td>
+        <td data-label="Active">${activeBadge(t.active)}</td>
+        <td data-label="Actions">
+          <div class="actions-cell">
+            <button class="icon-action" onclick="openModal('teacher-modal')" aria-label="Edit ${t.name}">${EDIT_SVG}</button>
+            <button class="icon-action danger" aria-label="Delete ${t.name}">${DEL_SVG}</button>
+          </div>
+        </td>
+      </tr>`).join('');
+    document.getElementById('teacher-count-badge').textContent = TEACHERS.length;
+  }
+
+  function toggleSchool(sid) {
+    const row = document.getElementById('expand-'+sid);
+    const chev = document.getElementById('chev-'+sid).querySelector('.chevron-icon');
+    const isOpen = row.style.display !== 'none';
+    row.style.display = isOpen ? 'none' : 'table-row';
+    chev.classList.toggle('open', !isOpen);
+  }
+
+  function switchTab(t) {
+    ['schools','teachers'].forEach(x => {
+      const btn = document.getElementById('tab-'+x);
+      const pan = document.getElementById('panel-'+x);
+      const active = x===t;
+      btn.classList.toggle('active',active);
+      btn.setAttribute('aria-selected',active);
+      pan.classList.toggle('active',active);
+    });
+  }
+
+  function filterTable(input, tbodyId) {
+    const val = input.value.toLowerCase();
+    document.querySelectorAll(`#${tbodyId} tr`).forEach(r => {
+      r.style.display = r.textContent.toLowerCase().includes(val) ? '' : 'none';
+    });
+  }
+
+  function filterTeacherSchool(val) {
+    document.querySelectorAll('#teachers-body tr').forEach(r => {
+      r.style.display = !val || r.dataset.school.toLowerCase().includes(val.toLowerCase()) ? '' : 'none';
+    });
+  }
+
+  function openModal(id) { document.getElementById(id).style.display='flex'; }
+  function closeModal(id) { document.getElementById(id).style.display='none'; }
+
+  function openSchoolRefundModal(name, emails) {
+    document.getElementById('srf-name').textContent = name;
+    document.getElementById('srf-email').textContent = emails || 'No email on file';
+    document.getElementById('srf-date').value = '';
+    document.getElementById('srf-message').value = '';
+    openModal('school-refund-modal');
+    setTimeout(function(){ document.getElementById('srf-date').focus(); }, 100);
+  }
+
+  function processSchoolRefund() {
+    var date = document.getElementById('srf-date').value;
+    if (!date) {
+      alert('Please select an order date.');
+      document.getElementById('srf-date').focus();
+      return;
+    }
+    var school = document.getElementById('srf-name').textContent;
+    closeModal('school-refund-modal');
+    alert('Order for ' + school + ' on ' + date + ' has been cancelled.');
+  }
+
+  function openSchoolModal(idx) {
+    const s = SCHOOLS[idx];
+    document.getElementById('school-modal-title').textContent = 'Edit School';
+    document.getElementById('s-name').value  = s.name;
+    document.getElementById('s-fee').value   = s.addon.replace('$','');
+    // Populate email rows
+    const list = document.getElementById('s-emails-list');
+    list.innerHTML = '';
+    const emails = s.emails && s.emails.length ? s.emails : [''];
+    emails.forEach(e => {
+      const row = document.createElement('div');
+      row.className = 'email-row';
+      row.style.cssText = 'display:flex;gap:8px;align-items:center;';
+      row.innerHTML = `<input type="email" class="form-input" placeholder="admin@school.edu" value="${e}" style="flex:1;"><button type="button" onclick="removeEmailRow(this)" style="background:none;border:none;cursor:pointer;color:var(--text-3);font-size:18px;line-height:1;padding:2px 4px;" aria-label="Remove email">✕</button>`;
+      list.appendChild(row);
+    });
+    openModal('school-modal');
+  }
+
+  function addEmailField() {
+    const list = document.getElementById('s-emails-list');
+    const row = document.createElement('div');
+    row.className = 'email-row';
+    row.style.cssText = 'display:flex;gap:8px;align-items:center;';
+    row.innerHTML = `<input type="email" class="form-input" placeholder="admin@school.edu" style="flex:1;"><button type="button" onclick="removeEmailRow(this)" style="background:none;border:none;cursor:pointer;color:var(--text-3);font-size:18px;line-height:1;padding:2px 4px;" aria-label="Remove email">✕</button>`;
+    list.appendChild(row);
+    row.querySelector('input').focus();
+  }
+
+  function removeEmailRow(btn) {
+    const list = document.getElementById('s-emails-list');
+    const row = btn.closest('.email-row');
+    if (list.querySelectorAll('.email-row').length > 1) {
+      row.remove();
+    } else {
+      row.querySelector('input').value = '';
+    }
+  }
+
+  buildSchoolsTable();
+  buildTeachersTable();
+
+  function toggleUserMenu() {
+    document.getElementById('user-dropdown').classList.toggle('open');
+  }
+  document.addEventListener('click', function(e) {
+    var menu = document.querySelector('.user-menu');
+    if (menu && !menu.contains(e.target)) {
+      document.getElementById('user-dropdown').classList.remove('open');
+    }
+  });
+
+  /* ── Mobile Nav ── */
+  function toggleMobileNav() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+    const btn = document.querySelector('.hamburger');
+    const isOpen = sidebar.classList.toggle('mobile-open');
+    overlay.classList.toggle('mobile-open', isOpen);
+    if (btn) btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  }
+  function closeMobileNav() {
+    document.querySelector('.sidebar').classList.remove('mobile-open');
+    document.querySelector('.sidebar-overlay').classList.remove('mobile-open');
+    var btn = document.querySelector('.hamburger');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  }
+  document.querySelector('.sidebar-overlay').addEventListener('click', closeMobileNav);
+</script>
+</body>
+</html>

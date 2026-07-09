@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meals &amp; Menus — Lunch Box Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    .skip-link{position:absolute;top:-100%;left:12px;background:#ec7229;color:#fff;padding:10px 18px;font-size:14px;font-weight:600;border-radius:0 0 6px 6px;text-decoration:none;z-index:9999;transition:top .15s;}
+    .skip-link:focus{top:0;}
+    :focus-visible{outline:3px solid #ec7229;outline-offset:2px;border-radius:3px;}
+    :root{
+      --sidebar-w:256px;--header-h:60px;
+      --sidebar:#0f172a;--sidebar-hover:#1e293b;--sidebar-active:#1e293b;
+      --green:#9abc10;--green-dk:#7a9c0c;--green-lt:#ecf5d0;
+      --orange:#ec7229;--orange-dk:#d4621f;--orange-lt:#fff4ed;
+      --page-bg:#f1f5f9;--surface:#ffffff;--border:#e2e8f0;
+      --text-1:#0f172a;--text-2:#475569;--text-3:#94a3b8;
+      --red:#dc2626;--red-lt:#fef2f2;
+      --r:8px;--r-lg:12px;--shadow-sm:0 1px 3px rgba(0,0,0,.08);
+    }
+    body{font-family:'Inter',sans-serif;background:var(--page-bg);color:var(--text-1);display:flex;min-height:100vh;}
+
+    /* SIDEBAR */
+    .sidebar{width:var(--sidebar-w);background:var(--sidebar);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;overflow-y:auto;}
+    .sidebar-brand{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.07);}
+    .sidebar-brand-box{display:inline-block;}
+    .sidebar-brand-box img{height:40px;width:auto;display:block;}
+    .sidebar-nav{flex:1;padding:16px 10px;}
+    .nav-group{margin-bottom:20px;}
+    .nav-group-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.3);letter-spacing:.1em;text-transform:uppercase;padding:0 10px;margin-bottom:6px;}
+    .nav-link{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;color:rgba(255,255,255,.65);font-size:14px;font-weight:500;text-decoration:none;position:relative;transition:background .12s,color .12s;margin-bottom:5px;}
+    .nav-link svg{width:18px;height:18px;flex-shrink:0;stroke-width:1.75;}
+    .nav-link:hover{background:var(--sidebar-hover);color:#fff;}
+    .nav-link.active{background:var(--sidebar-active);color:#fff;font-weight:600;}
+    .nav-link.active::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;background:var(--green);border-radius:0 3px 3px 0;}
+    .nav-badge{margin-left:auto;background:var(--orange);color:#fff;font-size:11px;font-weight:700;min-width:18px;height:18px;padding:0 5px;border-radius:9px;display:flex;align-items:center;justify-content:center;}
+    .sidebar-footer{padding:12px 10px;border-top:1px solid rgba(255,255,255,.07);display:flex;flex-direction:column;gap:2px;}
+
+    /* MAIN */
+    .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+
+    /* TOPBAR */
+    .topbar{height:var(--header-h);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:50;flex-shrink:0;}
+    .breadcrumb{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-2);}
+    .breadcrumb a{color:var(--text-2);text-decoration:none;}
+    .breadcrumb a:hover{color:var(--text-1);}
+    .breadcrumb-sep{color:var(--text-3);}
+    .breadcrumb-current{color:var(--text-1);font-weight:600;}
+    .topbar-left{display:flex;align-items:center;gap:12px;min-width:0;}
+    .topbar-right{display:flex;align-items:center;gap:10px;}
+    .search-box{display:flex;align-items:center;gap:8px;height:36px;background:var(--page-bg);border:1px solid var(--border);border-radius:var(--r);padding:0 12px;transition:border-color .15s;}
+    .search-box:focus-within{border-color:var(--orange);box-shadow:0 0 0 3px rgba(236,114,41,.12);}
+    .search-box svg{width:15px;height:15px;color:var(--text-3);flex-shrink:0;}
+    .search-box input{border:none;background:none;font-size:13px;color:var(--text-1);font-family:'Inter',sans-serif;outline:none;width:180px;}
+    .search-box input::placeholder{color:var(--text-3);}
+    .icon-btn{width:36px;height:36px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-2);position:relative;transition:background .12s;}
+    .icon-btn:hover{background:var(--page-bg);}
+    .icon-btn svg{width:18px;height:18px;}
+    .badge-dot{position:absolute;top:-3px;right:-3px;width:16px;height:16px;background:var(--orange);border-radius:50%;font-size:9px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;border:2px solid #fff;}
+    .user-chip{display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:var(--r);border:1px solid var(--border);cursor:pointer;font-size:13px;font-weight:500;background:var(--surface);transition:background .12s;}
+    .user-chip:hover{background:var(--page-bg);}
+    .user-menu{position:relative;}
+    .user-dropdown{display:none;position:absolute;top:calc(100% + 6px);right:0;min-width:160px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 8px 24px rgba(15,23,42,.12);z-index:300;overflow:hidden;padding:4px 0;}
+    .user-dropdown.open{display:block;}
+    .user-dropdown a{display:flex;align-items:center;gap:8px;padding:9px 14px;font-size:13px;color:var(--text-1);text-decoration:none;transition:background .12s;}
+    .user-dropdown a:hover{background:var(--page-bg);}
+    .user-dropdown-divider{height:1px;background:var(--border);margin:4px 0;}
+    input[type="checkbox"]{appearance:none;-webkit-appearance:none;width:16px;height:16px;min-width:16px;border:2px solid #cbd5e1;border-radius:4px;cursor:pointer;background:#fff;position:relative;transition:background .12s,border-color .12s;flex-shrink:0;}
+    input[type="checkbox"]:checked{background:var(--orange);border-color:var(--orange);}
+    input[type="checkbox"]:checked::after{content:'';position:absolute;left:3px;top:0px;width:5px;height:9px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg);}
+    input[type="checkbox"]:focus-visible{outline:3px solid rgba(236,114,41,.4);outline-offset:2px;}
+    .avatar{width:26px;height:26px;border-radius:50%;background:var(--orange);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+    /* CONTENT */
+    .content{padding:28px 28px 40px;flex:1;}
+    .page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;}
+    .page-title{font-size:22px;font-weight:700;}
+    .page-desc{font-size:13px;color:var(--text-2);margin-top:3px;}
+
+    /* BUTTONS */
+    .btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:var(--r);font-size:14px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;border:1px solid transparent;transition:all .12s;text-decoration:none;line-height:1.4;}
+    .btn svg{width:15px;height:15px;flex-shrink:0;}
+    .btn-primary{background:var(--orange);color:#fff;border-color:var(--orange);}
+    .btn-primary:hover{background:var(--orange-dk);border-color:var(--orange-dk);}
+    .btn-secondary{background:var(--surface);color:var(--text-1);border-color:var(--border);}
+    .btn-secondary:hover{background:var(--page-bg);}
+    .btn-success{background:var(--green);color:#1a2500;border-color:var(--green);}
+    .btn-success:hover{background:var(--green-dk);}
+    .btn-danger{background:var(--red);color:#fff;border-color:var(--red);}
+    .btn-ghost{background:transparent;color:var(--text-2);border-color:transparent;}
+    .btn-ghost:hover{background:var(--page-bg);color:var(--text-1);}
+    .btn-sm{padding:5px 11px;font-size:13px;}
+    .btn-xs{padding:3px 8px;font-size:12px;}
+
+    /* TABS */
+    .tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:24px;}
+    .tab-btn{padding:10px 20px;font-size:14px;font-weight:500;color:var(--text-2);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;}
+    .tab-btn:hover{color:var(--text-1);}
+    .tab-btn.active{color:var(--orange);border-bottom-color:var(--orange);font-weight:600;}
+    .tab-panel{display:none;}
+    .tab-panel.active{display:block;}
+
+    /* CARD */
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);overflow:hidden;}
+    .card-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);}
+    .card-title{font-size:15px;font-weight:600;}
+    .card-title .count{font-size:13px;color:var(--text-2);font-weight:400;}
+    .card-actions{display:flex;align-items:center;gap:8px;}
+
+    /* TOOLBAR */
+    .toolbar{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--page-bg);}
+    .search-field{display:flex;align-items:center;gap:8px;height:36px;border:1px solid var(--border);border-radius:var(--r);padding:0 12px;background:var(--surface);transition:border-color .15s;}
+    .search-field:focus-within{border-color:var(--orange);box-shadow:0 0 0 3px rgba(236,114,41,.12);}
+    .search-field svg{width:15px;height:15px;color:var(--text-3);flex-shrink:0;}
+    .search-field input{border:none;background:none;font-size:13px;font-family:'Inter',sans-serif;color:var(--text-1);outline:none;width:200px;}
+    .search-field input::placeholder{color:var(--text-3);}
+    .filter-select{height:36px;border:1px solid var(--border);border-radius:var(--r);padding:0 10px;font-size:13px;font-family:'Inter',sans-serif;color:var(--text-1);background:var(--surface);cursor:pointer;outline:none;}
+    .filter-select:focus{border-color:var(--orange);}
+    .spacer{flex:1;}
+
+    /* TABLE */
+    .tbl-wrap{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;}
+    thead th{font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;padding:10px 16px;text-align:left;background:var(--page-bg);border-bottom:1px solid var(--border);white-space:nowrap;}
+    tbody td{font-size:14px;color:var(--text-1);padding:13px 16px;border-bottom:1px solid var(--border);vertical-align:middle;}
+    tbody tr:last-child td{border-bottom:none;}
+    tbody tr:hover td{background:#f8fafc;}
+
+    /* BADGES */
+    .badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:12px;font-weight:600;}
+    .badge-yes{background:var(--green-lt);color:#3a5a00;}
+    .badge-no{background:var(--page-bg);color:var(--text-2);}
+    .badge-orange{background:var(--orange-lt);color:#9a3412;}
+    .badge-draft{background:var(--page-bg);color:var(--text-2);}
+    .badge-published{background:var(--green-lt);color:#3a5a00;}
+
+    /* ACTION ICON BUTTONS */
+    .actions-cell{display:flex;align-items:center;gap:4px;}
+    .icon-action{width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-2);transition:background .12s,color .12s;}
+    .icon-action:hover{background:var(--page-bg);}
+    .icon-action.danger:hover{background:var(--red-lt);color:var(--red);border-color:var(--red);}
+    .icon-action svg{width:14px;height:14px;stroke-width:2;}
+
+    /* PAGINATION */
+    .pagination{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-top:1px solid var(--border);font-size:13px;color:var(--text-2);}
+    .page-btns{display:flex;gap:4px;}
+    .page-btn{min-width:30px;height:30px;padding:0 6px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:13px;font-weight:500;color:var(--text-2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;}
+    .page-btn.active{background:var(--orange);color:#fff;border-color:var(--orange);}
+    .page-btn:hover:not(.active){background:var(--page-bg);}
+    .page-btn:disabled{opacity:.4;cursor:default;}
+
+    /* FORM SECTION (Meals + Menus builders) */
+    .form-section{padding:20px 24px;}
+    .form-section + .form-section{border-top:1px solid var(--border);}
+    .form-row-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+    .form-row-cols.three{grid-template-columns:1fr 1fr 1fr;}
+    .form-row-cols.four{grid-template-columns:auto 1fr 1fr auto;}
+    .form-group{display:flex;flex-direction:column;gap:6px;}
+    .form-label{font-size:13px;font-weight:600;color:var(--text-1);}
+    .form-label .req{color:var(--red);}
+    .form-input,.form-select{height:40px;border:1px solid var(--border);border-radius:var(--r);padding:0 12px;font-size:14px;font-family:'Inter',sans-serif;color:var(--text-1);background:var(--surface);outline:none;transition:border-color .15s;width:100%;}
+    .form-input:focus,.form-select:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(236,114,41,.12);}
+    .form-textarea{border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;font-size:14px;font-family:'Inter',sans-serif;color:var(--text-1);background:var(--surface);outline:none;transition:border-color .15s;width:100%;resize:vertical;min-height:80px;}
+    .form-textarea:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(236,114,41,.12);}
+    .form-check-row{display:flex;align-items:center;gap:20px;margin-bottom:16px;}
+    .form-check{display:flex;align-items:center;gap:8px;cursor:pointer;}
+    .form-check input[type=checkbox]{width:16px;height:16px;accent-color:var(--orange);cursor:pointer;}
+    .form-check label{font-size:14px;color:var(--text-1);cursor:pointer;}
+    .price-wrap{position:relative;}
+    .price-wrap span{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--text-2);pointer-events:none;}
+    .price-wrap .form-input{padding-left:22px;}
+    .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+    .section-head-title{font-size:12px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.08em;}
+    .add-row{display:flex;gap:8px;margin-bottom:12px;}
+    .add-row .form-input,.add-row .form-select{flex:1;}
+    .empty-state-row{padding:28px 16px;text-align:center;font-size:14px;color:var(--text-3);}
+    .form-footer{display:flex;justify-content:flex-end;gap:8px;padding:16px 24px;border-top:1px solid var(--border);background:var(--page-bg);}
+
+    /* MENUS BROWSE FILTER */
+    .menus-filter{padding:20px 24px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:12px;align-items:end;border-bottom:1px solid var(--border);}
+    .menus-filter .form-group{margin-bottom:0;}
+
+    /* MODAL */
+    .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;}
+    .modal{background:var(--surface);border-radius:var(--r-lg);box-shadow:0 20px 60px rgba(0,0,0,.2);width:480px;max-width:100%;max-height:90vh;overflow-y:auto;}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--border);}
+    .modal-title{font-size:17px;font-weight:700;}
+    .modal-close{background:none;border:none;cursor:pointer;font-size:22px;color:var(--text-3);line-height:1;padding:4px;}
+    .modal-close:hover{color:var(--text-1);}
+    .modal-body{padding:24px;}
+    .modal-foot{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;}
+    .modal .form-group{margin-bottom:16px;}
+    .modal .form-group:last-child{margin-bottom:0;}
+    .modal-section-label{font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;margin:20px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+  
+    /* ── MOBILE HAMBURGER ── */
+    .hamburger{display:none;width:36px;height:36px;border:none;background:none;cursor:pointer;color:var(--text-1);align-items:center;justify-content:center;flex-shrink:0;border-radius:var(--r);padding:0;}
+    .hamburger:hover{background:var(--page-bg);}
+    .search-btn-mobile{display:none;width:36px;height:36px;border:none;background:none;cursor:pointer;color:var(--text-2);align-items:center;justify-content:center;flex-shrink:0;border-radius:var(--r);padding:0;}
+    .search-btn-mobile:hover{background:var(--page-bg);}
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:99;}
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:900px){
+      body{overflow-x:hidden;}
+      .main{min-width:0;}
+      .sidebar{transform:translateX(-100%);transition:transform .25s ease;z-index:100;}
+      .sidebar.mobile-open{transform:translateX(0);}
+      .sidebar-overlay.mobile-open{display:block;}
+      .main{margin-left:0!important;}
+      .hamburger{display:flex;}
+      .topbar{padding:0 14px;}
+      .content{padding:16px 14px 32px;}
+      .stats-grid{grid-template-columns:1fr!important;}
+      .grid-2{grid-template-columns:1fr!important;}
+      .page-header{flex-direction:column;gap:12px;align-items:flex-start;}
+      .page-header>div:last-child{align-self:flex-start;}
+      .search-box input{width:120px;}
+      .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+      .menus-filter{grid-template-columns:1fr!important;padding:16px 14px;}
+      .meals-grid-1{grid-template-columns:1fr!important;}
+      .meals-grid-1>div:last-child{display:none;}
+      .meals-grid-2{grid-template-columns:1fr!important;}
+      .modal-overlay > div, .modal-overlay > .modal{max-width:calc(100vw - 32px)!important;width:100%!important;margin:0 16px;}
+      .modal{max-width:calc(100vw - 32px)!important;}
+      /* ── STACKED TABLE CARDS ── */
+      .tbl-wrap table{min-width:0;}
+      .tbl-wrap thead{display:none;}
+      .tbl-wrap tr{display:block;border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;padding:4px 0;background:var(--surface);}
+      .tbl-wrap td{display:flex;justify-content:space-between;align-items:flex-start;border:none!important;background:transparent!important;padding:5px 12px;font-size:13px;gap:8px;border-bottom:1px solid var(--page-bg)!important;}
+      .tbl-wrap tr td:last-child{border-bottom:none!important;}
+      .tbl-wrap td::before{content:attr(data-label);font-weight:600;font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.03em;flex-shrink:0;min-width:95px;padding-top:2px;}
+      .tbl-wrap td[data-label=""]{display:none;}
+      .tbl-wrap tr.expand-row,.tbl-wrap tr.school-expand-row{display:none;}
+      .tbl-wrap tfoot tr{display:block;border-top:2px solid var(--border);padding:8px 12px;font-weight:700;}
+      .tbl-wrap tfoot td{border-bottom:none!important;background:transparent!important;}
+    }
+    @media(max-width:520px){
+      .search-box{display:none;}
+      .search-btn-mobile{display:flex;}
+      .topbar-right{gap:6px;}
+      .stats-grid{grid-template-columns:1fr!important;}
+      .card-head{flex-direction:column;align-items:flex-start;gap:8px;}
+    }
+  </style>
+<style>
+.diet-tag{display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.04em;margin-left:5px;vertical-align:middle;border:1px solid;}
+.diet-gf{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe;}
+.diet-vg{background:#f0fdf4;color:#15803d;border-color:#bbf7d0;}
+.diet-df{background:#fefce8;color:#a16207;border-color:#fde68a;}
+.diet-nut{background:#fff7ed;color:#c2410c;border-color:#fed7aa;}
+.diet-hl{background:#f0fdf4;color:#15803d;border-color:#bbf7d0;}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
+<!-- SIDEBAR -->
+<div class="sidebar-overlay"></div>
+
+<aside class="sidebar" role="navigation" aria-label="Admin navigation">
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-box">
+      <img src="lunchbox-logo-horiz.png" alt="Lunch Box Program" width="148">
+    </div>
+  </div>
+  <nav class="sidebar-nav" aria-label="Primary">
+    <div class="nav-group">
+      <div class="nav-group-label" aria-hidden="true">Main</div>
+      <a href="index.html" class="nav-link">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a href="meals-menus.html" class="nav-link active" aria-current="page">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Meals &amp; Menus
+      </a>
+      <a href="food-schedule.html" class="nav-link">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path stroke-linecap="round" d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Food Schedule
+      </a>
+      <a href="schools.html" class="nav-link">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21V9l9-6 9 6v12M9 21V12h6v9"/></svg>
+        Schools &amp; Teachers
+      </a>
+      <a href="parents.html" class="nav-link">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m4-4a4 4 0 100-8 4 4 0 000 8z"/></svg>
+        Parents &amp; Students
+        
+      </a>
+      <a href="reports.html" class="nav-link">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        Reports
+      </a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" aria-hidden="true">System</div>
+      <a href="settings.html" class="nav-link">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+        Settings
+      </a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <a href="#" class="nav-link">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h5a2 2 0 012 2v1"/></svg>
+      Log Out
+    </a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <header class="topbar" role="banner">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleMobileNav()" aria-label="Open navigation" aria-expanded="false"><svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="index.html">Dashboard</a>
+      <span class="breadcrumb-sep" aria-hidden="true">/</span>
+      <span class="breadcrumb-current" aria-current="page">Meals &amp; Menus</span>
+    </nav>
+    </div>
+    <div class="topbar-right">
+      <div class="search-box" role="search">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+        <input type="search" placeholder="Search…" aria-label="Search admin">
+      </div>
+      <button class="search-btn-mobile" aria-label="Search" onclick="var sb=this.closest('header').querySelector('.search-box');sb.style.display='flex';sb.querySelector('input').focus();this.style.display='none';"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/></svg></button>
+      <div class="user-menu">
+        <div class="user-chip" role="button" aria-label="Admin user menu" tabindex="0" onclick="toggleUserMenu()" onkeydown="if(event.key==='Enter'||event.key===' ')toggleUserMenu()">
+          <div class="avatar" aria-hidden="true">AD</div>
+          <span>Admin</span>
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px;color:#94a3b8;" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </div>
+        <div class="user-dropdown" id="user-dropdown">
+
+          <a href="#"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h5a2 2 0 012 2v1"/></svg>Log Out</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content" class="content" role="main">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Meals &amp; Menus</h1>
+        <p class="page-desc">Manage food items, compose meals, and build menus</p>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs" role="tablist" aria-label="Meals and menus sections">
+      <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="panel-food" id="tab-food" onclick="selectTab('food')">Food Items</button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-meals" id="tab-meals" onclick="selectTab('meals')">Meals</button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-menus" id="tab-menus" onclick="selectTab('menus')">Menus</button>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         FOOD ITEMS TAB
+    ═══════════════════════════════════════ -->
+    <div id="panel-food" class="tab-panel active" role="tabpanel" aria-labelledby="tab-food">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Food Items <span class="count" id="fi-count">(10 items)</span></div>
+          <div class="card-actions">
+            <button class="btn btn-sm btn-primary" onclick="openModal('add-food-modal')">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+              Add Food Item
+            </button>
+          </div>
+        </div>
+        <div class="toolbar">
+          <div class="search-field" role="search">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+            <input type="search" placeholder="Search food items…" aria-label="Search food items" oninput="filterFoodItems(this.value)">
+          </div>
+          <select class="filter-select" aria-label="Filter by food type" onchange="filterFoodType(this.value)">
+            <option value="">All Types</option>
+            <option>Hot Lunches</option>
+            <option>Salads</option>
+            <option>Soup</option>
+            <option>Sandwiches</option>
+            <option>Snacks</option>
+            <option>Sides</option>
+            <option>Drinks</option>
+            <option>Desserts</option>
+          </select>
+
+          <div class="spacer"></div>
+          <span id="fi-showing" style="font-size:13px;color:var(--text-2);">Showing 10 of 10</span>
+        </div>
+        <div class="tbl-wrap">
+          <table aria-label="Food items" id="food-table">
+            <thead>
+              <tr>
+                <th scope="col">Food Item</th>
+                <th scope="col">Food Type</th>
+                <th scope="col">Dietary Tags</th>
+                <th scope="col">Price</th>
+                <th scope="col">Active?</th>
+                <th scope="col">Addon?</th>
+                <th scope="col" style="width:80px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="food-tbody">
+              <tr data-name="april dessert dirt pudding" data-type="desserts" data-tags="">
+                <td style="font-weight:500;" data-label="Food Item">April Dessert: Dirt Pudding</td>
+                <td style="color:var(--text-2);" data-label="Food Type">Desserts</td>
+                <td data-label="Dietary Tags">—</td>
+                <td data-label="Price">$3.00</td>
+                <td data-label="Active?"><span class="badge badge-yes">Yes</span></td>
+                <td data-label="Addon?"><span class="badge badge-no">No</span></td>
+                <td data-label="Actions"><div class="actions-cell">
+                  <button class="icon-action" onclick="openEditFoodModal('April Dessert: Dirt Pudding','Desserts','3.00',true,false,[])" aria-label="Edit April Dessert: Dirt Pudding">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                  </button>
+                  <button class="icon-action danger" aria-label="Delete April Dessert: Dirt Pudding">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </div></td>
+              </tr>
+              <tr data-name="august dessert banana pudding" data-type="desserts" data-tags="">
+                <td style="font-weight:500;" data-label="Food Item">August Dessert: Banana Pudding</td>
+                <td style="color:var(--text-2);" data-label="Food Type">Desserts</td>
+                <td data-label="Dietary Tags">—</td>
+                <td data-label="Price">$3.00</td>
+                <td data-label="Active?"><span class="badge badge-yes">Yes</span></td>
+                <td data-label="Addon?"><span class="badge badge-no">No</span></td>
+                <td data-label="Actions"><div class="actions-cell">
+                  <button class="icon-action" onclick="openEditFoodModal('August Dessert: Banana Pudding','Desserts','3.00',true,false,[])" aria-label="Edit">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                  </button>
+                  <button class="icon-action danger" aria-label="Delete">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </div></td>
+              </tr>
+              <tr data-name="fish n chips battered cod fries" data-type="hot lunches" data-tags="">
+                <td style="font-weight:500;" data-label="Food Item">Fish n Chips (Battered Cod, Fries &amp; Veg)</td>
+                <td style="color:var(--text-2);" data-label="Food Type">Hot Lunches</td>
+                <td data-label="Dietary Tags">—</td>
+                <td data-label="Price">$10.00</td>
+                <td data-label="Active?"><span class="badge badge-yes">Yes</span></td>
+                <td data-label="Addon?"><span class="badge badge-yes">Yes</span></td>
+                <td data-label="Actions"><div class="actions-cell">
+                  <button class="icon-action" onclick="openEditFoodModal('Fish n Chips','Hot Lunches','10.00',true,true,[])" aria-label="Edit">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                  </button>
+                  <button class="icon-action danger" aria-label="Delete">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </div></td>
+              </tr>
+              <tr data-name="gluten free chicken strips veg banana" data-type="hot lunches" data-tags="gf">
+                <td style="font-weight:500;" data-label="Food Item">GF Chicken Strips, Veg &amp; Banana <span class="diet-tag diet-gf">GF</span></td>
+                <td style="color:var(--text-2);" data-label="Food Type">Hot Lunches</td>
+                <td data-label="Dietary Tags"><span class="diet-tag diet-gf">GF</span></td>
+                <td data-label="Price">$3.00</td>
+                <td data-label="Active?"><span class="badge badge-yes">Yes</span></td>
+                <td data-label="Addon?"><span class="badge badge-yes">Yes</span></td>
+                <td data-label="Actions"><div class="actions-cell">
+                  <button class="icon-action" onclick="openEditFoodModal('GF Chicken Strips, Veg &amp; Banana','Hot Lunches','3.00',true,true,['gf'])" aria-label="Edit">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                  </button>
+                  <button class="icon-action danger" aria-label="Delete">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </div></td>
+              </tr>
+              <tr data-name="country chicken salad crispy tenders" data-type="salads" data-tags="">
+                <td style="font-weight:500;" data-label="Food Item">Country Chicken Salad</td>
+                <td style="color:var(--text-2);" data-label="Food Type">Salads</td>
+                <td data-label="Dietary Tags">—</td>
+                <td data-label="Price">$11.50</td>
+                <td data-label="Active?"><span class="badge badge-yes">Yes</span></td>
+                <td data-label="Addon?"><span class="badge badge-no">No</span></td>
+                <td data-label="Actions"><div class="actions-cell">
+                  <button class="icon-action" onclick="openEditFoodModal('Country Chicken Salad','Salads','11.50',true,false,[])" aria-label="Edit">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                  </button>
+                  <button class="icon-action danger" aria-label="Delete">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </div></td>
+              </tr>
+              <tr data-name="italian salad provolone banana peppers" data-type="salads" data-tags="gf">
+                <td style="font-weight:500;" data-label="Food Item">Italian Salad <span class="diet-tag diet-gf">GF</span></td>
+                <td style="color:var(--text-2);" data-label="Food Type">Salads</td>
+                <td data-label="Dietary Tags"><span class="diet-tag diet-gf">GF</span></td>
+                <td data-label="Price">$10.50</td>
+                <td data-label="Active?"><span class="badge badge-yes">Yes</span></td>
+                <td data-label="Addon?"><span class="badge badge-no">No</span></td>
+                <td data-label="Actions"><div class="actions-cell">
+                  <button class="icon-action" onclick="openEditFoodModal('Italian Salad','Salads','10.50',true,false,['gf'])" aria-label="Edit">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                  </button>
+                  <button class="icon-action danger" aria-label="Delete">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </div></td>
+              </tr>
+              <tr data-name="cup of tomato soup vg" data-type="soup" data-tags="vg">
+                <td style="font-weight:500;" data-label="Food Item">Cup of Tomato Soup <span class="diet-tag diet-vg">VG</span></td>
+                <td style="color:var(--text-2);" data-label="Food Type">Soup</td>
+                <td data-label="Dietary Tags"><span class="diet-tag diet-vg">VG</span></td>
+                <td data-label="Price">$4.00</td>
+                <td data-label="Active?"><span class="badge badge-yes">Yes</span></td>
+                <td data-label="Addon?"><span class="badge badge-yes">Yes</span></td>
+                <td data-label="Actions"><div class="actions-cell">
+                  <button class="icon-action" onclick="openEditFoodModal('Cup of Tomato Soup','Soup','4.00',true,true,['vg'])" aria-label="Edit">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                  </button>
+                  <button class="icon-action danger" aria-label="Delete">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </div></td>
+              </tr>
+              <tr data-name="grilled cheese combo soup" data-type="sandwiches" data-tags="">
+                <td style="font-weight:500;" data-label="Food Item">Grilled Cheese Combo + Soup</td>
+                <td style="color:var(--text-2);" data-label="Food Type">Sandwiches</td>
+                <td data-label="Dietary Tags">—</td>
+                <td data-label="Price">$7.50</td>
+                <td data-label="Active?"><span class="badge badge-yes">Yes</span></td>
+                <td data-label="Addon?"><span class="badge badge-no">No</span></td>
+                <td data-label="Actions"><div class="actions-cell">
+                  <button class="icon-action" onclick="openEditFoodModal('Grilled Cheese Combo + Soup','Sandwiches','7.50',true,false,[])" aria-label="Edit">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                  </button>
+                  <button class="icon-action danger" aria-label="Delete">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </div></td>
+              </tr>
+              <tr data-name="falafel hummus pita vg" data-type="hot lunches" data-tags="vg">
+                <td style="font-weight:500;" data-label="Food Item">Falafel &amp; Hummus <span class="diet-tag diet-vg">VG</span></td>
+                <td style="color:var(--text-2);" data-label="Food Type">Hot Lunches</td>
+                <td data-label="Dietary Tags"><span class="diet-tag diet-vg">VG</span></td>
+                <td data-label="Price">$9.00</td>
+                <td data-label="Active?"><span class="badge badge-yes">Yes</span></td>
+                <td data-label="Addon?"><span class="badge badge-no">No</span></td>
+                <td data-label="Actions"><div class="actions-cell">
+                  <button class="icon-action" onclick="openEditFoodModal('Falafel &amp; Hummus','Hot Lunches','9.00',true,false,['vg'])" aria-label="Edit">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                  </button>
+                  <button class="icon-action danger" aria-label="Delete">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </div></td>
+              </tr>
+              <tr data-name="double cheeseburger potato wedges" data-type="hot lunches" data-tags="">
+                <td style="font-weight:500;" data-label="Food Item">Double Cheeseburger + Potato Wedges</td>
+                <td style="color:var(--text-2);" data-label="Food Type">Hot Lunches</td>
+                <td data-label="Dietary Tags">—</td>
+                <td data-label="Price">$8.00</td>
+                <td data-label="Active?"><span class="badge badge-yes">Yes</span></td>
+                <td data-label="Addon?"><span class="badge badge-no">No</span></td>
+                <td data-label="Actions"><div class="actions-cell">
+                  <button class="icon-action" onclick="openEditFoodModal('Double Cheeseburger + Potato Wedges','Hot Lunches','8.00',true,false,[])" aria-label="Edit">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                  </button>
+                  <button class="icon-action danger" aria-label="Delete">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" aria-label="Food items pagination">
+          <span>Showing 1–10 of 10</span>
+          <div class="page-btns" role="group" aria-label="Page navigation">
+            <button class="page-btn" disabled aria-label="Previous page">&#8249;</button>
+            <button class="page-btn active" aria-label="Page 1, current">1</button>
+            <button class="page-btn" aria-label="Next page">&#8250;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         MEALS TAB
+    ═══════════════════════════════════════ -->
+    <div id="panel-meals" class="tab-panel" role="tabpanel" aria-labelledby="tab-meals">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Meals</div>
+          <div class="card-actions">
+            <button class="btn btn-sm btn-primary" onclick="openModal('add-meal-modal')">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+              Add Meal
+            </button>
+          </div>
+        </div>
+
+        <!-- Meal selector form -->
+        <div class="form-section">
+          <div class="meals-grid-1" style="display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;margin-bottom:16px;">
+            <div class="form-group">
+              <label class="form-label" for="meal-select">Meal Name <span class="req" aria-hidden="true">*</span></label>
+              <select id="meal-select" class="form-select" onchange="loadMeal(this.value)" aria-label="Select meal to edit">
+                <option value="">Select…</option>
+                <option value="classic">Classic Hot Lunch Bundle</option>
+                <option value="salad-soup">Salad + Soup Combo</option>
+                <option value="veggie">Veggie Pack *VG*</option>
+                <option value="bag">Bag Lunch Special</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="meal-search">Search Meals</label>
+              <div class="search-field" style="height:40px;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+                <input type="search" id="meal-search" placeholder="Search meals…" aria-label="Search meals">
+              </div>
+            </div>
+            <div></div>
+          </div>
+          <div class="meals-grid-2" style="display:grid;grid-template-columns:160px 180px auto auto auto 1fr;gap:16px;align-items:center;margin-bottom:0;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" for="meal-price">Price <span class="req" aria-hidden="true">*</span></label>
+              <div class="price-wrap">
+                <span aria-hidden="true">$</span>
+                <input type="text" id="meal-price" class="form-input" value="" placeholder="0.00" aria-label="Meal price">
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" for="meal-food-type">Food Type</label>
+              <select id="meal-food-type" class="form-select" aria-label="Food type">
+                <option value="">Select…</option>
+                <option>Hot Lunches</option>
+                <option>Salads</option>
+                <option>Soup</option>
+                <option>Sandwiches</option>
+                <option>Snacks</option>
+                <option>Sides</option>
+                <option>Drinks</option>
+                <option>Desserts</option>
+              </select>
+            </div>
+            <div style="align-self:flex-end;padding-bottom:2px;">
+              <label class="form-check">
+                <input type="checkbox" id="meal-active" checked>
+                <label for="meal-active" style="font-size:14px;color:var(--text-1);">Active</label>
+              </label>
+            </div>
+            <div style="align-self:flex-end;padding-bottom:2px;">
+              <label class="form-check">
+                <input type="checkbox" id="meal-admin">
+                <label for="meal-admin" style="font-size:14px;color:var(--text-1);">Addon</label>
+              </label>
+            </div>
+            <div></div>
+            <div></div>
+          </div>
+        </div>
+
+        <!-- Food Items section -->
+        <div class="form-section">
+          <div class="section-head">
+            <span class="section-head-title">Food Items</span>
+            <button class="btn btn-xs btn-secondary" onclick="showAddFoodToMeal()">+ Add Food Item</button>
+          </div>
+          <div class="add-row" id="meal-food-add-row" style="display:none;">
+            <select class="form-select" id="meal-food-select" aria-label="Select food item to add">
+              <option value="">Select a food item…</option>
+              <option>April Dessert: Dirt Pudding — Desserts — $3.00</option>
+              <option>August Dessert: Banana Pudding — Desserts — $3.00</option>
+              <option>Fish n Chips (Battered Cod, Fries &amp; Veg) — Hot Lunches — $10.00</option>
+              <option>GF Chicken Strips, Veg &amp; Banana — Hot Lunches — $3.00</option>
+              <option>Country Chicken Salad — Salads — $11.50</option>
+              <option>Italian Salad *GF* — Salads — $10.50</option>
+              <option>Cup of Tomato Soup *VG* — Soup — $4.00</option>
+              <option>Grilled Cheese Combo + Soup — Sandwiches — $7.50</option>
+              <option>Falafel &amp; Hummus *VG* — Hot Lunches — $9.00</option>
+              <option>Double Cheeseburger + Potato Wedges — Hot Lunches — $8.00</option>
+            </select>
+            <button class="btn btn-sm btn-success" onclick="addFoodItemToMeal()">Add</button>
+            <button class="btn btn-sm btn-ghost" onclick="hideFoodAddRow()">Cancel</button>
+          </div>
+          <div class="tbl-wrap">
+            <table aria-label="Meal food items" id="meal-items-table">
+              <thead>
+                <tr>
+                  <th scope="col">Food Item</th>
+                  <th scope="col">Food Type</th>
+                  <th scope="col">Price</th>
+                  <th scope="col" style="width:80px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="meal-items-tbody">
+                <tr id="meal-empty-row">
+                  <td colspan="4" class="empty-state-row" data-label="Food Item">No items added — select a meal above or add food items below.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="form-footer">
+          <button class="btn btn-ghost" onclick="clearMealForm()">Cancel</button>
+          <button class="btn btn-primary" onclick="saveMeal()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         MENUS TAB
+    ═══════════════════════════════════════ -->
+    <div id="panel-menus" class="tab-panel" role="tabpanel" aria-labelledby="tab-menus">
+
+      <!-- Browse State -->
+      <div id="menus-browse" class="card">
+        <div class="card-head">
+          <div class="card-title">Menus</div>
+          <div class="card-actions">
+            <button class="btn btn-sm btn-secondary" onclick="openModal('new-from-template-modal')">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              New From Template
+            </button>
+            <button class="btn btn-sm btn-primary" onclick="openNewMenu()">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+              New Menu
+            </button>
+          </div>
+        </div>
+        <div class="menus-filter">
+          <div class="form-group">
+            <label class="form-label" for="menu-name-sel">Menu Name <span class="req" aria-hidden="true">*</span></label>
+            <select id="menu-name-sel" class="form-select" onchange="loadMenuForm(this.value)" aria-label="Select menu">
+              <option value="">Select…</option>
+              <option value="may">May Hot Lunch Menu</option>
+              <option value="spring">Spring Salad Bar</option>
+              <option value="june">June Summer Menu</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="menu-search">Search Menus</label>
+            <div class="search-field" style="height:40px;">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+              <input type="search" id="menu-search" placeholder="Search menus…" aria-label="Search menus">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="menu-tmpl-sel">Template Name <span class="req" aria-hidden="true">*</span></label>
+            <select id="menu-tmpl-sel" class="form-select" aria-label="Select template">
+              <option value="">Select…</option>
+              <option>Menu Template 1</option>
+              <option>Menu Template 2</option>
+              <option>Hot Lunch Standard</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="tmpl-search">Search Templates</label>
+            <div class="search-field" style="height:40px;">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+              <input type="search" id="tmpl-search" placeholder="Search templates…" aria-label="Search templates">
+            </div>
+          </div>
+          <div class="form-group" style="justify-content:flex-end;padding-bottom:2px;">
+            <label class="form-check">
+              <input type="checkbox" id="menu-browse-active" checked>
+              <label for="menu-browse-active" style="font-size:14px;color:var(--text-1);">Active</label>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit / Create State (shown when a menu is selected or New Menu is clicked) -->
+      <div id="menus-edit" style="display:none;margin-top:20px;" class="card">
+        <div class="card-head">
+          <div class="card-title" id="menu-edit-title">New Menu</div>
+        </div>
+
+        <!-- Name + Active -->
+        <div class="form-section">
+          <div style="display:grid;grid-template-columns:1fr 200px auto;gap:16px;align-items:end;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" for="menu-name-input">Name <span class="req" aria-hidden="true">*</span></label>
+              <input type="text" id="menu-name-input" class="form-input" placeholder="Menu name…">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" for="menu-food-type">Food Type</label>
+              <select id="menu-food-type" class="form-select" aria-label="Food type">
+                <option value="">Select…</option>
+                <option>Hot Lunches</option>
+                <option>Salads</option>
+                <option>Soup</option>
+                <option>Sandwiches</option>
+                <option>Snacks</option>
+                <option>Sides</option>
+                <option>Drinks</option>
+                <option>Desserts</option>
+              </select>
+            </div>
+            <div style="padding-bottom:4px;">
+              <label class="form-check">
+                <input type="checkbox" id="menu-edit-active" checked>
+                <label for="menu-edit-active" style="font-size:14px;color:var(--text-1);">Active</label>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Meals section -->
+        <div class="form-section">
+          <div class="section-head">
+            <span class="section-head-title">Meals</span>
+            <button class="btn btn-xs btn-secondary" onclick="showAddMealToMenu()">+ Add Meal</button>
+          </div>
+          <div class="add-row" id="menu-meal-add-row" style="display:none;">
+            <select class="form-select" id="menu-meal-select" aria-label="Select meal to add">
+              <option value="">Select a meal…</option>
+              <option>Classic Hot Lunch Bundle — $10.50</option>
+              <option>Salad + Soup Combo — $13.00</option>
+              <option>Veggie Pack *VG* — $9.50</option>
+              <option>Bag Lunch Special — $9.00</option>
+            </select>
+            <button class="btn btn-sm btn-success" onclick="addMealToMenu()">Add</button>
+            <button class="btn btn-sm btn-ghost" onclick="document.getElementById('menu-meal-add-row').style.display='none'">Cancel</button>
+          </div>
+          <div class="tbl-wrap">
+            <table aria-label="Menu meals" id="menu-meals-table">
+              <thead>
+                <tr>
+                  <th scope="col">Included Meals</th>
+                  <th scope="col">Price</th>
+                  <th scope="col">Addon?</th>
+                  <th scope="col" style="width:80px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="menu-meals-tbody">
+                <tr id="menu-meals-empty">
+                  <td colspan="4" class="empty-state-row" data-label="Included Meals">No items added.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Food Items section -->
+        <div class="form-section">
+          <div class="section-head">
+            <span class="section-head-title">Food Items</span>
+            <button class="btn btn-xs btn-secondary" onclick="showAddFoodToMenu()">+ Add Food Item</button>
+          </div>
+          <div class="add-row" id="menu-food-add-row" style="display:none;">
+            <select class="form-select" id="menu-food-select" aria-label="Select food item to add to menu">
+              <option value="">Select a food item…</option>
+              <option>April Dessert: Dirt Pudding — Desserts — $3.00</option>
+              <option>August Dessert: Banana Pudding — Desserts — $3.00</option>
+              <option>Fish n Chips (Battered Cod, Fries &amp; Veg) — Hot Lunches — $10.00</option>
+              <option>GF Chicken Strips, Veg &amp; Banana — Hot Lunches — $3.00</option>
+              <option>Country Chicken Salad — Salads — $11.50</option>
+              <option>Italian Salad *GF* — Salads — $10.50</option>
+              <option>Cup of Tomato Soup *VG* — Soup — $4.00</option>
+              <option>Grilled Cheese Combo + Soup — Sandwiches — $7.50</option>
+              <option>Falafel &amp; Hummus *VG* — Hot Lunches — $9.00</option>
+              <option>Double Cheeseburger + Potato Wedges — Hot Lunches — $8.00</option>
+            </select>
+            <button class="btn btn-sm btn-success" onclick="addFoodItemToMenu()">Add</button>
+            <button class="btn btn-sm btn-ghost" onclick="document.getElementById('menu-food-add-row').style.display='none'">Cancel</button>
+          </div>
+          <div class="tbl-wrap">
+            <table aria-label="Menu food items" id="menu-foods-table">
+              <thead>
+                <tr>
+                  <th scope="col">Food Item</th>
+                  <th scope="col">Food Type</th>
+                  <th scope="col">Price</th>
+                  <th scope="col">Addon?</th>
+                  <th scope="col" style="width:80px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="menu-foods-tbody">
+                <tr id="menu-foods-empty">
+                  <td colspan="5" class="empty-state-row" data-label="Food Item">No items added.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="form-footer">
+          <button class="btn btn-ghost" onclick="closeMenuEdit()">Cancel</button>
+          <button class="btn btn-secondary" onclick="saveAsTemplate()">Save As Template</button>
+          <button class="btn btn-primary" onclick="saveMenu()">Save</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MODALS
+═══════════════════════════════════════ -->
+
+<!-- EDIT FOOD ITEM MODAL -->
+<div id="edit-food-modal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="edit-food-title" onclick="closeModalOutside(event,'edit-food-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <h2 class="modal-title" id="edit-food-title">Edit Food Item</h2>
+      <button class="modal-close" onclick="closeModal('edit-food-modal')" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label" for="efi-name">Food Item <span class="req" aria-hidden="true">*</span></label>
+        <textarea id="efi-name" class="form-textarea" rows="3" placeholder="Enter food item name and description…"></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="form-group">
+          <label class="form-label" for="efi-type">Food Type <span class="req" aria-hidden="true">*</span></label>
+          <select id="efi-type" class="form-select">
+            <option value="">Select…</option>
+            <option>Hot Lunches</option><option>Salads</option><option>Soup</option>
+            <option>Sandwiches</option><option>Snacks</option><option>Sides</option><option>Drinks</option><option>Desserts</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="efi-price">Price <span class="req" aria-hidden="true">*</span></label>
+          <div class="price-wrap">
+            <span aria-hidden="true">$</span>
+            <input type="text" id="efi-price" class="form-input" placeholder="0.00">
+          </div>
+        </div>
+      </div>
+      <div class="modal-section-label">Dietary Tags</div>
+      <div class="form-check-row" style="flex-wrap:wrap;gap:12px;margin-bottom:8px;">
+        <label class="form-check"><input type="checkbox" id="efi-gf"><label for="efi-gf">Gluten-Free (GF)</label></label>
+        <label class="form-check"><input type="checkbox" id="efi-vg"><label for="efi-vg">Vegetarian (VG)</label></label>
+        <label class="form-check"><input type="checkbox" id="efi-df"><label for="efi-df">Dairy-Free (DF)</label></label>
+        <label class="form-check"><input type="checkbox" id="efi-nut"><label for="efi-nut">Nut-Free (NF)</label></label>
+        <label class="form-check"><input type="checkbox" id="efi-hl"><label for="efi-hl">Halal (HL)</label></label>
+      </div>
+      <div class="modal-section-label">Options</div>
+      <div class="form-check-row">
+        <label class="form-check">
+          <input type="checkbox" id="efi-active" checked>
+          <label for="efi-active">Active</label>
+        </label>
+        <label class="form-check">
+          <input type="checkbox" id="efi-admin">
+          <label for="efi-admin">Addon</label>
+        </label>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('edit-food-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal('edit-food-modal')">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD FOOD ITEM MODAL -->
+<div id="add-food-modal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="add-food-title" onclick="closeModalOutside(event,'add-food-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <h2 class="modal-title" id="add-food-title">Add Food Item</h2>
+      <button class="modal-close" onclick="closeModal('add-food-modal')" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label" for="afi-name">Food Item <span class="req" aria-hidden="true">*</span></label>
+        <input type="text" id="afi-name" class="form-input" placeholder="Enter food item name…" required>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="form-group">
+          <label class="form-label" for="afi-type">Food Type <span class="req" aria-hidden="true">*</span></label>
+          <select id="afi-type" class="form-select" required>
+            <option value="">Select…</option>
+            <option>Hot Lunches</option><option>Salads</option><option>Soup</option>
+            <option>Sandwiches</option><option>Snacks</option><option>Sides</option><option>Drinks</option><option>Desserts</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="afi-price">Price <span class="req" aria-hidden="true">*</span></label>
+          <div class="price-wrap">
+            <span aria-hidden="true">$</span>
+            <input type="text" id="afi-price" class="form-input" placeholder="0.00" required>
+          </div>
+        </div>
+      </div>
+      <div class="modal-section-label">Dietary Tags</div>
+      <div class="form-check-row" style="flex-wrap:wrap;gap:12px;margin-bottom:8px;">
+        <label class="form-check"><input type="checkbox" id="afi-gf"><label for="afi-gf">Gluten-Free (GF)</label></label>
+        <label class="form-check"><input type="checkbox" id="afi-vg"><label for="afi-vg">Vegetarian (VG)</label></label>
+        <label class="form-check"><input type="checkbox" id="afi-df"><label for="afi-df">Dairy-Free (DF)</label></label>
+        <label class="form-check"><input type="checkbox" id="afi-nut"><label for="afi-nut">Nut-Free (NF)</label></label>
+        <label class="form-check"><input type="checkbox" id="afi-hl"><label for="afi-hl">Halal (HL)</label></label>
+      </div>
+      <div class="modal-section-label">Options</div>
+      <div class="form-check-row">
+        <label class="form-check">
+          <input type="checkbox" id="afi-active" checked>
+          <label for="afi-active">Active</label>
+        </label>
+        <label class="form-check">
+          <input type="checkbox" id="afi-admin">
+          <label for="afi-admin">Addon</label>
+        </label>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('add-food-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal('add-food-modal')">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD MEAL MODAL -->
+<div id="add-meal-modal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="add-meal-title" onclick="closeModalOutside(event,'add-meal-modal')">
+  <div class="modal" onclick="event.stopPropagation()" style="width:420px;">
+    <div class="modal-head">
+      <h2 class="modal-title" id="add-meal-title">Add Meal</h2>
+      <button class="modal-close" onclick="closeModal('add-meal-modal')" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label" for="am-name">Name <span class="req" aria-hidden="true">*</span></label>
+        <input type="text" id="am-name" class="form-input" placeholder="e.g. Chicken Alfredo" required>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group">
+          <label class="form-label" for="am-price">Price <span class="req" aria-hidden="true">*</span></label>
+          <div class="price-wrap">
+            <span aria-hidden="true">$</span>
+            <input type="text" id="am-price" class="form-input" placeholder="0.00" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="am-food-type">Food Type</label>
+          <select id="am-food-type" class="form-select" aria-label="Food type">
+            <option value="">Select…</option>
+            <option>Hot Lunches</option>
+            <option>Salads</option>
+            <option>Soup</option>
+            <option>Sandwiches</option>
+            <option>Snacks</option>
+            <option>Sides</option>
+            <option>Drinks</option>
+            <option>Desserts</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-check-row">
+        <label class="form-check">
+          <input type="checkbox" id="am-active" checked>
+          <label for="am-active">Active</label>
+        </label>
+        <label class="form-check">
+          <input type="checkbox" id="am-admin">
+          <label for="am-admin">Addon</label>
+        </label>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('add-meal-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="createMeal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW MENU MODAL -->
+<div id="new-menu-modal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="new-menu-title" onclick="closeModalOutside(event,'new-menu-modal')">
+  <div class="modal" onclick="event.stopPropagation()" style="width:400px;">
+    <div class="modal-head">
+      <h2 class="modal-title" id="new-menu-title">New Menu</h2>
+      <button class="modal-close" onclick="closeModal('new-menu-modal')" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label" for="nm-name">Name <span class="req" aria-hidden="true">*</span></label>
+        <input type="text" id="nm-name" class="form-input" placeholder="Menu name…" required>
+      </div>
+      <div class="form-check-row">
+        <label class="form-check">
+          <input type="checkbox" id="nm-active" checked>
+          <label for="nm-active">Active</label>
+        </label>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('new-menu-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmNewMenu()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW FROM TEMPLATE MODAL -->
+<div id="new-from-template-modal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="nft-title" onclick="closeModalOutside(event,'new-from-template-modal')">
+  <div class="modal" onclick="event.stopPropagation()" style="width:440px;">
+    <div class="modal-head">
+      <h2 class="modal-title" id="nft-title">New From Template</h2>
+      <button class="modal-close" onclick="closeModal('new-from-template-modal')" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label" for="nft-template">Select Template <span class="req" aria-hidden="true">*</span></label>
+        <select id="nft-template" class="form-select" required>
+          <option value="">Select a template…</option>
+          <option value="t1">Menu Template 1</option>
+          <option value="t2">Menu Template 2</option>
+          <option value="hot">Hot Lunch Standard</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="nft-name">Name <span class="req" aria-hidden="true">*</span></label>
+        <input type="text" id="nft-name" class="form-input" placeholder="Menu name…" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="nft-food-type">Food Type</label>
+        <select id="nft-food-type" class="form-select" aria-label="Food type">
+          <option value="">Select…</option>
+          <option>Hot Lunches</option>
+          <option>Salads</option>
+          <option>Soup</option>
+          <option>Sandwiches</option>
+          <option>Snacks</option>
+          <option>Sides</option>
+          <option>Drinks</option>
+          <option>Desserts</option>
+        </select>
+      </div>
+      <div class="form-check-row">
+        <label class="form-check">
+          <input type="checkbox" id="nft-active" checked>
+          <label for="nft-active">Active</label>
+        </label>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('new-from-template-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="createFromTemplate()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ── Tabs ── */
+  function selectTab(t) {
+    document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-'+t).classList.add('active');
+    document.getElementById('tab-'+t).setAttribute('aria-selected','true');
+    document.getElementById('panel-'+t).classList.add('active');
+  }
+
+  /* ── Food Items filtering ── */
+  function filterFoodItems(val) {
+    const rows = document.querySelectorAll('#food-tbody tr');
+    let shown = 0;
+    rows.forEach(r => {
+      const match = r.dataset.name && r.dataset.name.includes(val.toLowerCase());
+      r.style.display = match ? '' : 'none';
+      if (match) shown++;
+    });
+    document.getElementById('fi-showing').textContent = `Showing ${shown} of ${rows.length}`;
+  }
+  function filterFoodType(val) {
+    const rows = document.querySelectorAll('#food-tbody tr');
+    let shown = 0;
+    rows.forEach(r => {
+      const match = !val || (r.dataset.type && r.dataset.type.toLowerCase() === val.toLowerCase());
+      r.style.display = match ? '' : 'none';
+      if (match) shown++;
+    });
+    document.getElementById('fi-showing').textContent = `Showing ${shown} of ${rows.length}`;
+  }
+  function filterDietaryTag(val) {
+    const rows = document.querySelectorAll('#food-tbody tr');
+    let shown = 0;
+    rows.forEach(r => {
+      const tags = r.dataset.tags || '';
+      const match = !val || tags.split(' ').includes(val);
+      r.style.display = match ? '' : 'none';
+      if (match) shown++;
+    });
+    document.getElementById('fi-showing').textContent = `Showing ${shown} of ${rows.length}`;
+  }
+
+  /* ── Edit Food modal ── */
+  function openEditFoodModal(name, type, price, active, admin, tags) {
+    tags = tags || [];
+    document.getElementById('efi-name').value = name;
+    document.getElementById('efi-price').value = price;
+    document.getElementById('efi-active').checked = active;
+    document.getElementById('efi-admin').checked = admin;
+    ['gf','vg','df','nut','hl'].forEach(t => {
+      document.getElementById('efi-'+t).checked = tags.includes(t);
+    });
+    const sel = document.getElementById('efi-type');
+    for (let o of sel.options) { if (o.text === type) { o.selected = true; break; } }
+    openModal('edit-food-modal');
+  }
+
+  /* ── Meal builder ── */
+  const mealData = {
+    classic: { price: '10.50', active: true, admin: false, items: [
+      ['Classic Hot Lunch Bundle main dish', 'Hot Lunches', '$6.50'],
+      ['Side Salad', 'Salads', '$3.50'],
+      ['Apple Juice', 'Drinks', '$0.50'],
+    ]},
+    'salad-soup': { price: '13.00', active: true, admin: false, items: [
+      ['Country Chicken Salad', 'Salads', '$11.50'],
+      ['Cup of Tomato Soup *VG*', 'Soup', '$4.00'],
+    ]},
+    veggie: { price: '9.50', active: true, admin: false, items: [
+      ['Falafel & Hummus *VG*', 'Hot Lunches', '$9.00'],
+    ]},
+    bag: { price: '9.00', active: false, admin: false, items: [
+      ['Grilled Cheese Combo + Soup', 'Sandwiches', '$7.50'],
+    ]},
+  };
+
+  function loadMeal(val) {
+    const d = mealData[val];
+    document.getElementById('meal-price').value = d ? d.price : '';
+    document.getElementById('meal-active').checked = d ? d.active : true;
+    document.getElementById('meal-admin').checked = d ? d.admin : false;
+    const tbody = document.getElementById('meal-items-tbody');
+    tbody.innerHTML = '';
+    if (!d || d.items.length === 0) {
+      tbody.innerHTML = '<tr id="meal-empty-row"><td colspan="4" class="empty-state-row">No items added.</td></tr>';
+    } else {
+      d.items.forEach(([name, type, price]) => appendMealItemRow(name, type, price));
+    }
+  }
+
+  function appendMealItemRow(name, type, price) {
+    const tbody = document.getElementById('meal-items-tbody');
+    const empty = document.getElementById('meal-empty-row');
+    if (empty) empty.remove();
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="font-weight:500;">${name}</td><td style="color:var(--text-2);">${type}</td><td>${price}</td>
+      <td><div class="actions-cell">
+        <button class="icon-action danger" onclick="this.closest('tr').remove()" aria-label="Remove ${name}">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </button>
+      </div></td>`;
+    tbody.appendChild(tr);
+  }
+
+  function showAddFoodToMeal() { document.getElementById('meal-food-add-row').style.display = 'flex'; }
+  function hideFoodAddRow()   { document.getElementById('meal-food-add-row').style.display = 'none'; }
+
+  function addFoodItemToMeal() {
+    const sel = document.getElementById('meal-food-select');
+    if (!sel.value) return;
+    const parts = sel.value.split(' — ');
+    appendMealItemRow(parts[0], parts[1] || '', parts[2] || '');
+    sel.value = '';
+    hideFoodAddRow();
+  }
+
+  function clearMealForm() {
+    document.getElementById('meal-select').value = '';
+    document.getElementById('meal-price').value = '';
+    document.getElementById('meal-active').checked = true;
+    document.getElementById('meal-admin').checked = false;
+    document.getElementById('meal-items-tbody').innerHTML = '<tr id="meal-empty-row"><td colspan="4" class="empty-state-row">No items added.</td></tr>';
+    hideFoodAddRow();
+  }
+
+  function saveMeal() {
+    const name = document.getElementById('meal-select').value;
+    if (!name) { alert('Please select or add a meal.'); return; }
+    const btn = event.currentTarget;
+    btn.textContent = '✓ Saved';
+    btn.style.background = 'var(--green)';
+    btn.style.color = '#1a2500';
+    setTimeout(() => { btn.textContent = 'Save'; btn.style.background = ''; btn.style.color = ''; }, 2000);
+  }
+
+  function createMeal() {
+    const name = document.getElementById('am-name').value.trim();
+    const price = document.getElementById('am-price').value.trim();
+    if (!name || !price) { alert('Please fill in all required fields.'); return; }
+    const sel = document.getElementById('meal-select');
+    const opt = document.createElement('option');
+    opt.value = name.toLowerCase().replace(/\s+/g, '-');
+    opt.text = name;
+    sel.appendChild(opt);
+    sel.value = opt.value;
+    document.getElementById('meal-price').value = price;
+    closeModal('add-meal-modal');
+    document.getElementById('am-name').value = '';
+    document.getElementById('am-price').value = '';
+  }
+
+  /* ── Menus builder ── */
+  function openNewMenu() {
+    document.getElementById('menu-edit-title').textContent = 'New Menu';
+    document.getElementById('menu-name-input').value = '';
+    document.getElementById('menu-edit-active').checked = true;
+    document.getElementById('menu-meals-tbody').innerHTML = '<tr id="menu-meals-empty"><td colspan="4" class="empty-state-row">No items added.</td></tr>';
+    document.getElementById('menu-foods-tbody').innerHTML = '<tr id="menu-foods-empty"><td colspan="5" class="empty-state-row">No items added.</td></tr>';
+    document.getElementById('menus-edit').style.display = 'block';
+    document.getElementById('menus-edit').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function loadMenuForm(val) {
+    if (!val) { document.getElementById('menus-edit').style.display = 'none'; return; }
+    const names = { may: 'May Hot Lunch Menu', spring: 'Spring Salad Bar', june: 'June Summer Menu' };
+    document.getElementById('menu-edit-title').textContent = names[val] || val;
+    document.getElementById('menu-name-input').value = names[val] || val;
+    document.getElementById('menu-edit-active').checked = true;
+
+    // Pre-populate with sample data
+    const tbody = document.getElementById('menu-meals-tbody');
+    tbody.innerHTML = '';
+    const sampleMeals = [
+      ['Classic Hot Lunch Bundle', '$10.50', 'No'],
+      ['Salad + Soup Combo', '$13.00', 'No'],
+    ];
+    sampleMeals.forEach(([name, price, added]) => appendMenuMealRow(name, price, added));
+
+    const ftbody = document.getElementById('menu-foods-tbody');
+    ftbody.innerHTML = '';
+    const sampleFoods = [
+      ['April Dessert: Dirt Pudding', 'Desserts', '$3.00', 'No'],
+      ['Grilled Cheese Combo + Soup', 'Sandwiches', '$7.50', 'No'],
+    ];
+    sampleFoods.forEach(([name, type, price, added]) => appendMenuFoodRow(name, type, price, added));
+
+    document.getElementById('menus-edit').style.display = 'block';
+    document.getElementById('menus-edit').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function appendMenuMealRow(name, price, added) {
+    const tbody = document.getElementById('menu-meals-tbody');
+    const empty = document.getElementById('menu-meals-empty');
+    if (empty) empty.remove();
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="font-weight:500;">${name}</td><td>${price}</td>
+      <td><span class="badge ${added==='Yes'?'badge-yes':'badge-no'}">${added}</span></td>
+      <td><div class="actions-cell">
+        <button class="icon-action danger" onclick="this.closest('tr').remove()" aria-label="Remove ${name}">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </button>
+      </div></td>`;
+    tbody.appendChild(tr);
+  }
+
+  function appendMenuFoodRow(name, type, price, added) {
+    const tbody = document.getElementById('menu-foods-tbody');
+    const empty = document.getElementById('menu-foods-empty');
+    if (empty) empty.remove();
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="font-weight:500;">${name}</td><td style="color:var(--text-2);">${type}</td><td>${price}</td>
+      <td><span class="badge ${added==='Yes'?'badge-yes':'badge-no'}">${added}</span></td>
+      <td><div class="actions-cell">
+        <button class="icon-action danger" onclick="this.closest('tr').remove()" aria-label="Remove ${name}">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </button>
+      </div></td>`;
+    tbody.appendChild(tr);
+  }
+
+  function showAddMealToMenu() { document.getElementById('menu-meal-add-row').style.display = 'flex'; }
+  function showAddFoodToMenu() { document.getElementById('menu-food-add-row').style.display = 'flex'; }
+
+  function addMealToMenu() {
+    const sel = document.getElementById('menu-meal-select');
+    if (!sel.value) return;
+    const parts = sel.value.split(' — ');
+    appendMenuMealRow(parts[0], parts[1] || '', 'No');
+    sel.value = '';
+    document.getElementById('menu-meal-add-row').style.display = 'none';
+  }
+
+  function addFoodItemToMenu() {
+    const sel = document.getElementById('menu-food-select');
+    if (!sel.value) return;
+    const parts = sel.value.split(' — ');
+    appendMenuFoodRow(parts[0], parts[1] || '', parts[2] || '', 'No');
+    sel.value = '';
+    document.getElementById('menu-food-add-row').style.display = 'none';
+  }
+
+  function closeMenuEdit() {
+    document.getElementById('menus-edit').style.display = 'none';
+    document.getElementById('menu-name-sel').value = '';
+  }
+
+  function saveMenu() {
+    const name = document.getElementById('menu-name-input').value.trim();
+    if (!name) { alert('Please enter a menu name.'); return; }
+    alert(`Menu "${name}" saved successfully.`);
+    closeMenuEdit();
+  }
+
+  function saveAsTemplate() {
+    const name = document.getElementById('menu-name-input').value.trim() || 'Menu';
+    alert(`"${name}" saved as a template.`);
+  }
+
+  function confirmNewMenu() {
+    const name = document.getElementById('nm-name').value.trim();
+    if (!name) { alert('Please enter a menu name.'); return; }
+    closeModal('new-menu-modal');
+    document.getElementById('menu-edit-title').textContent = name;
+    document.getElementById('menu-name-input').value = name;
+    document.getElementById('menu-edit-active').checked = document.getElementById('nm-active').checked;
+    document.getElementById('menu-meals-tbody').innerHTML = '<tr id="menu-meals-empty"><td colspan="4" class="empty-state-row">No items added.</td></tr>';
+    document.getElementById('menu-foods-tbody').innerHTML = '<tr id="menu-foods-empty"><td colspan="5" class="empty-state-row">No items added.</td></tr>';
+    document.getElementById('menus-edit').style.display = 'block';
+    document.getElementById('menus-edit').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('nm-name').value = '';
+  }
+
+  function createFromTemplate() {
+    const tmpl = document.getElementById('nft-template').value;
+    const name = document.getElementById('nft-name').value.trim();
+    if (!tmpl || !name) { alert('Please fill in all required fields.'); return; }
+    closeModal('new-from-template-modal');
+    document.getElementById('menu-edit-title').textContent = name;
+    document.getElementById('menu-name-input').value = name;
+    document.getElementById('menus-edit').style.display = 'block';
+    document.getElementById('menus-edit').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /* ── Modal helpers ── */
+  function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+  function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+  function closeModalOutside(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay').forEach(el => { if (el.style.display === 'flex') el.style.display = 'none'; });
+    }
+  });
+
+  function toggleUserMenu() {
+    document.getElementById('user-dropdown').classList.toggle('open');
+  }
+  document.addEventListener('click', function(e) {
+    var menu = document.querySelector('.user-menu');
+    if (menu && !menu.contains(e.target)) {
+      document.getElementById('user-dropdown').classList.remove('open');
+    }
+  });
+
+  /* ── Mobile Nav ── */
+  function toggleMobileNav() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+    const btn = document.querySelector('.hamburger');
+    const isOpen = sidebar.classList.toggle('mobile-open');
+    overlay.classList.toggle('mobile-open', isOpen);
+    if (btn) btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  }
+  function closeMobileNav() {
+    document.querySelector('.sidebar').classList.remove('mobile-open');
+    document.querySelector('.sidebar-overlay').classList.remove('mobile-open');
+    var btn = document.querySelector('.hamburger');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  }
+  document.querySelector('.sidebar-overlay').addEventListener('click', closeMobileNav);
+</script>
+</body>
+</html>

@@ -1,0 +1,2485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parents & Students — Lunch Box Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── Design Tokens ── */
+    :root {
+      --sidebar: #0f172a;
+      --sidebar-hover: #1e293b;
+      --sidebar-active: #1e293b;
+      --sidebar-text: #94a3b8;
+      --sidebar-text-active: #ffffff;
+      --sidebar-border: #1e293b;
+
+      --green: #9abc10;
+      --green-dk: #7a9c0c;
+      --green-lt: #ecf5d0;
+      --orange: #ec7229;
+      --orange-dk: #d4621f;
+      --orange-lt: #fff4ed;
+      --page-bg: #f1f5f9;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text-1: #0f172a;
+      --text-2: #475569;
+      --text-3: #94a3b8;
+      --red: #dc2626;
+      --red-lt: #fef2f2;
+      --yellow: #d97706;
+      --yellow-lt: #fffbeb;
+    }
+
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--page-bg);
+      color: var(--text-1);
+      display: flex;
+      min-height: 100vh;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; }
+    img { display: block; max-width: 100%; }
+
+    /* ── Skip Link (ADA) ── */
+    .skip-link {
+      position: absolute;
+      top: -48px;
+      left: 16px;
+      background: var(--orange);
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 0 0 6px 6px;
+      font-weight: 600;
+      font-size: 14px;
+      z-index: 9999;
+      transition: top .2s;
+    }
+    .skip-link:focus { top: 0; }
+
+    /* ── Sidebar ── */
+    .sidebar{width:256px;background:var(--sidebar);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:200;overflow-y:auto;}
+    .sidebar-brand{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.07);}
+    .sidebar-brand-box{display:inline-block;}
+    .sidebar-brand-box img{height:40px;width:auto;display:block;}
+    .sidebar-nav{flex:1;padding:16px 10px;}
+    .nav-group{margin-bottom:20px;}
+    .nav-group-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.3);letter-spacing:.1em;text-transform:uppercase;padding:0 10px;margin-bottom:6px;}
+    .nav-link{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;color:rgba(255,255,255,.65);font-size:14px;font-weight:500;text-decoration:none;position:relative;transition:background .12s,color .12s;margin-bottom:5px;}
+    .nav-link svg{width:18px;height:18px;flex-shrink:0;stroke-width:1.75;}
+    .nav-link:hover{background:var(--sidebar-hover);color:#fff;}
+    .nav-link.active{background:var(--sidebar-hover);color:#fff;font-weight:600;}
+    .nav-link.active::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;background:var(--green);border-radius:0 3px 3px 0;}
+    .nav-badge{margin-left:auto;background:var(--orange);color:#fff;font-size:11px;font-weight:700;min-width:18px;height:18px;padding:0 5px;border-radius:9px;display:flex;align-items:center;justify-content:center;}
+    .sidebar-footer{padding:12px 10px;border-top:1px solid rgba(255,255,255,.07);display:flex;flex-direction:column;gap:2px;}
+
+    /* ── Main Layout ── */
+    .main-wrap {
+      margin-left: 256px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      min-width: 0;
+    }
+
+    /* ── Topbar ── */
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .topbar-breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-2); }
+    .topbar-breadcrumb a { color: var(--text-2); text-decoration: none; }
+    .topbar-breadcrumb a:hover { color: var(--text-1); }
+    .topbar-breadcrumb-sep { color: var(--text-3); }
+    .topbar-breadcrumb-current { color: var(--text-1); font-weight: 600; }
+    .topbar-left{display:flex;align-items:center;gap:12px;min-width:0;}
+    .topbar-actions { display: flex; align-items: center; gap: 10px; }
+    .search-box{display:flex;align-items:center;gap:8px;height:36px;background:var(--page-bg);border:1px solid var(--border);border-radius:8px;padding:0 12px;transition:border-color .15s;}
+    .search-box:focus-within{border-color:var(--orange);box-shadow:0 0 0 3px rgba(236,114,41,.12);}
+    .search-box svg{width:15px;height:15px;color:var(--text-3);flex-shrink:0;}
+    .search-box input{border:none;background:none;font-size:13px;color:var(--text-1);font-family:'Inter',sans-serif;outline:none;width:180px;}
+    .search-box input::placeholder{color:var(--text-3);}
+
+    .topbar-icon-btn {
+      width: 36px; height: 36px;
+      border-radius: var(--r);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-2);
+      transition: background .12s;
+      position: relative;
+      cursor: pointer;
+    }
+    .topbar-icon-btn:hover { background: var(--page-bg); }
+    .topbar-icon-btn svg { width: 18px; height: 18px; }
+    .badge-dot { position: absolute; top: -3px; right: -3px; width: 16px; height: 16px; background: var(--orange); border-radius: 50%; font-size: 9px; font-weight: 700; color: #fff; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; }
+    .topbar-user-chip {
+      display: flex; align-items: center; gap: 8px;
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 13px; font-weight: 500; color: var(--text-1);
+      transition: background .12s;
+    }
+    .topbar-user-chip:hover { background: var(--page-bg); }
+    .user-menu{position:relative;}
+    .user-dropdown{display:none;position:absolute;top:calc(100% + 6px);right:0;min-width:160px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(15,23,42,.12);z-index:300;overflow:hidden;padding:4px 0;}
+    .user-dropdown.open{display:block;}
+    .user-dropdown a{display:flex;align-items:center;gap:8px;padding:9px 14px;font-size:13px;color:var(--text-1);text-decoration:none;transition:background .12s;}
+    .user-dropdown a:hover{background:var(--page-bg);}
+    .user-dropdown-divider{height:1px;background:var(--border);margin:4px 0;}
+    input[type="checkbox"]{appearance:none;-webkit-appearance:none;width:16px;height:16px;min-width:16px;border:2px solid #cbd5e1;border-radius:4px;cursor:pointer;background:#fff;position:relative;transition:background .12s,border-color .12s;flex-shrink:0;}
+    input[type="checkbox"]:checked{background:var(--orange);border-color:var(--orange);}
+    input[type="checkbox"]:checked::after{content:'';position:absolute;left:3px;top:0px;width:5px;height:9px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg);}
+    input[type="checkbox"]:focus-visible{outline:3px solid rgba(236,114,41,.4);outline-offset:2px;}
+    .topbar-user-avatar {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--orange);
+      color: #fff;
+      font-weight: 700; font-size: 11px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ── Page Content ── */
+    main {
+      padding: 28px 28px 40px;
+      flex: 1;
+    }
+
+    /* ── Focus Visible Global ── */
+    *:focus-visible {
+      outline: 3px solid var(--orange);
+      outline-offset: 2px;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: background .15s, box-shadow .15s, transform .1s;
+      white-space: nowrap;
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary { background: var(--orange); color: #ffffff; }
+    .btn-primary:hover { background: var(--orange-dk); }
+    .btn-success { background: var(--green); color: #1a2500; }
+    .btn-success:hover { background: var(--green-dk); }
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text-1);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: var(--page-bg); }
+    .btn-danger { background: var(--red); color: #fff; }
+    .btn-danger:hover { background: #b91c1c; }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-2);
+      border: none;
+      padding: 6px 10px;
+    }
+    .btn-ghost:hover { background: var(--page-bg); color: var(--text-1); }
+    .btn-sm { padding: 6px 12px; font-size: 13px; }
+    .btn-xs { padding: 4px 10px; font-size: 12px; }
+
+    /* ── Search/Filter Bar ── */
+    .search-bar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .search-field { flex: 1; min-width: 240px; }
+    .search-field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-2);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .search-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .search-input-wrap svg {
+      position: absolute;
+      left: 12px;
+      color: var(--text-3);
+      pointer-events: none;
+    }
+    .search-input {
+      width: 100%;
+      padding: 10px 12px 10px 40px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text-1);
+      background: var(--page-bg);
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .search-input:focus {
+      outline: none;
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(236,114,41,.15);
+    }
+    .filter-field { min-width: 180px; }
+    .filter-field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-2);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .filter-select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text-1);
+      background: var(--page-bg);
+      cursor: pointer;
+    }
+    .filter-select:focus {
+      outline: none;
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(236,114,41,.15);
+    }
+
+    /* ── Stats Row ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .stat-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-bottom: 8px;
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-1);
+      line-height: 1;
+    }
+    .stat-sub {
+      font-size: 12px;
+      color: var(--text-3);
+      margin-top: 4px;
+    }
+
+    /* ── Tabs ── */
+    .tabs-bar {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 0;
+    }
+    .tab-btn {
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-2);
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      cursor: pointer;
+      transition: color .15s, border-color .15s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tab-btn:hover { color: var(--text-1); }
+    .tab-btn[aria-selected="true"] {
+      color: var(--orange);
+      border-bottom-color: var(--orange);
+    }
+    .tab-btn:focus-visible { outline: 3px solid var(--orange); outline-offset: -3px; }
+    .tab-count {
+      background: var(--page-bg);
+      border-radius: 20px;
+      padding: 1px 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-2);
+    }
+    .tab-btn[aria-selected="true"] .tab-count {
+      background: var(--orange-lt);
+      color: var(--orange-dk);
+    }
+
+    /* ── Card / Table Container ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-1);
+    }
+
+    /* ── Table ── */
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    thead { background: var(--page-bg); }
+    th {
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--text-2);
+      white-space: nowrap;
+    }
+    td {
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+      color: var(--text-1);
+      vertical-align: middle;
+    }
+    tr:hover td { background: #f8fafc; }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-active { background: var(--green-lt); color: #3a5c00; }
+    .badge-inactive { background: var(--page-bg); color: var(--text-2); border: 1px solid var(--border); }
+    .badge-pending { background: var(--yellow-lt); color: var(--yellow); }
+
+    /* ── Balance Colors ── */
+    .bal-healthy { color: #3a5c00; font-weight: 600; }
+    .bal-low { color: var(--yellow); font-weight: 600; }
+    .bal-zero { color: var(--red); font-weight: 600; }
+    .bal-credit { color: var(--text-2); font-weight: 500; }
+
+    /* ── Student Pills ── */
+    .pill-list { display: flex; flex-wrap: wrap; gap: 4px; }
+    .pill {
+      background: var(--green-lt);
+      color: #3a5c00;
+      border-radius: 20px;
+      padding: 2px 10px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    /* ── Person Cell ── */
+    .person-cell { display: flex; align-items: center; gap: 10px; }
+    .avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .av-orange { background: var(--orange-lt); color: var(--orange-dk); }
+    .av-green  { background: var(--green-lt);  color: #3a5c00; }
+    .av-blue   { background: #dbeafe; color: #1e40af; }
+    .av-purple { background: #ede9fe; color: #6d28d9; }
+    .person-name { font-weight: 600; color: var(--text-1); font-size: 14px; }
+    .person-email { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+
+    /* ── Action Buttons Cell ── */
+    .action-cell { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+
+    /* ── Tab Panels ── */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Pagination ── */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text-2);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .page-btns { display: flex; gap: 4px; }
+    .page-btn {
+      min-width: 32px; height: 32px;
+      padding: 0 6px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-2);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .page-btn.active { background: var(--orange); color: #fff; border-color: var(--orange); }
+    .page-btn:hover:not(.active) { background: var(--page-bg); }
+
+    /* ────────────────────────────────────────────
+       MODAL
+    ──────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,.55);
+      z-index: 500;
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 48px 16px;
+      overflow-y: auto;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 680px;
+      box-shadow: 0 20px 60px rgba(15,23,42,.2);
+      animation: modalIn .2s ease;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(-16px) scale(.98); }
+      to   { opacity: 1; transform: translateY(0)     scale(1); }
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-title { font-size: 18px; font-weight: 700; }
+    .modal-close {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-2);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+    }
+    .modal-close:hover { background: var(--page-bg); }
+    .modal-body { padding: 24px; }
+    .modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* ── Modal Sections ── */
+    .modal-section { margin-bottom: 24px; }
+    .modal-section:last-child { margin-bottom: 0; }
+    .modal-section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── Balance Block ── */
+    .balance-block {
+      background: var(--page-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .balance-info-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--text-2);
+      margin-bottom: 4px;
+    }
+    .balance-amount {
+      font-size: 32px;
+      font-weight: 700;
+    }
+    .balance-sub { font-size: 12px; color: var(--text-3); }
+    .balance-actions { display: flex; gap: 8px; }
+
+    /* ── Student Cards ── */
+    .student-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .student-card:last-child { margin-bottom: 0; }
+    .student-card-left { display: flex; align-items: center; gap: 10px; }
+    .student-card-meta { font-size: 12px; color: var(--text-3); }
+
+    /* ── Mini Table ── */
+    .mini-table { font-size: 13px; }
+    .mini-table th { font-size: 10px; padding: 8px 12px; }
+    .mini-table td { padding: 10px 12px; }
+
+    /* ── Form Grid ── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .form-full { grid-column: 1 / -1; }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-2);
+      margin-bottom: 6px;
+    }
+    .form-control {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text-1);
+      background: var(--page-bg);
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(236,114,41,.15);
+    }
+    select.form-control {
+      appearance: none;
+      -webkit-appearance: none;
+      padding-right: 36px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%2364748b' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      cursor: pointer;
+    }
+    select.form-control:focus {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23ec7229' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    }
+
+    /* ── Orders Modal ── */
+    .om-modal { max-width: 820px; }
+    .om-summary-bar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--page-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-bottom: 18px;
+    }
+    .om-avatar {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--orange-lt);
+      color: var(--orange-dk);
+      font-size: 16px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .om-parent-name { font-size: 15px; font-weight: 700; color: var(--text-1); }
+    .om-parent-email { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+    .om-balance-pill {
+      margin-left: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 16px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .om-balance-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-2); }
+    .om-balance-val { font-size: 18px; font-weight: 700; margin-top: 1px; }
+
+    .om-filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      background: var(--page-bg);
+      border-radius: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .om-filter-bar .filter-select { height: 32px; font-size: 13px; padding: 0 10px; border-radius: 6px; }
+    .om-filter-lbl { font-size: 12px; font-weight: 600; color: var(--text-2); white-space: nowrap; }
+    .om-filter-bar .filter-input { height: 32px; font-size: 13px; padding: 0 10px; border-radius: 6px; width: 120px; }
+
+    .om-table-wrap { overflow-y: auto; max-height: 340px; border: 1px solid var(--border); border-radius: 8px; }
+    .om-table { font-size: 13px; }
+    .om-table thead { position: sticky; top: 0; z-index: 2; background: var(--page-bg); }
+    .om-table th { padding: 9px 14px; font-size: 10px; }
+    .om-table td { padding: 11px 14px; }
+    .om-items-text { font-size: 12px; color: var(--text-2); line-height: 1.5; }
+
+    .badge-complete  { background: var(--green-lt); color: #3a5c00; }
+    .badge-outstanding { background: var(--yellow-lt); color: var(--yellow); }
+    .badge-refunded  { background: var(--page-bg); color: var(--text-2); border: 1px solid var(--border); }
+    .badge-canceled  { background: var(--page-bg); color: var(--text-2); border: 1px solid var(--border); }
+
+    .om-tfoot { background: var(--page-bg); border-top: 2px solid var(--border); font-weight: 700; font-size: 13px; }
+    .om-tfoot td { padding: 10px 14px; }
+
+    /* ── No-results row ── */
+    .no-results-row td {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-3);
+      font-size: 14px;
+    }
+    .no-results-row { display: none; }
+    .no-results-row.visible { display: table-row; }
+  
+    /* ── MOBILE HAMBURGER ── */
+    .hamburger{display:none;width:36px;height:36px;border:none;background:none;cursor:pointer;color:var(--text-1);align-items:center;justify-content:center;flex-shrink:0;border-radius:var(--r);padding:0;}
+    .hamburger:hover{background:var(--page-bg);}
+    .search-btn-mobile{display:none;width:36px;height:36px;border:none;background:none;cursor:pointer;color:var(--text-2);align-items:center;justify-content:center;flex-shrink:0;border-radius:var(--r);padding:0;}
+    .search-btn-mobile:hover{background:var(--page-bg);}
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:99;}
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:900px){
+      body{overflow-x:hidden;}
+      .main-wrap{min-width:0;}
+      .sidebar{transform:translateX(-100%);transition:transform .25s ease;}
+      .sidebar.mobile-open{transform:translateX(0);}
+      .sidebar-overlay.mobile-open{display:block;}
+      .main-wrap{margin-left:0!important;}
+      .hamburger{display:flex;}
+      .topbar{padding:0 14px;}
+      .content{padding:16px 14px 32px;}
+      main{padding:16px 14px 32px;}
+      .stats-row{grid-template-columns:1fr 1fr!important;}
+      .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+      .page-header{flex-direction:column;gap:12px;align-items:flex-start;}
+      .page-header>div:last-child{align-self:flex-start;}
+      .search-box input{width:110px;}
+      .modal-overlay > div,.modal-overlay > .modal{max-width:calc(100vw - 32px)!important;width:100%!important;}
+      .modal{max-width:calc(100vw - 32px)!important;}
+      /* ── STACKED TABLE CARDS ── */
+      .tbl-wrap table,.table-wrap table{min-width:0;}
+      .tbl-wrap thead,.table-wrap thead{display:none;}
+      .tbl-wrap tr,.table-wrap tr{display:block;border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;padding:4px 0;background:var(--surface);}
+      .tbl-wrap td,.table-wrap td{display:flex;justify-content:space-between;align-items:flex-start;border:none!important;background:transparent!important;padding:5px 12px;font-size:13px;gap:8px;border-bottom:1px solid var(--page-bg)!important;}
+      .tbl-wrap tr td:last-child,.table-wrap tr td:last-child{border-bottom:none!important;}
+      .tbl-wrap td::before,.table-wrap td::before{content:attr(data-label);font-weight:600;font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.03em;flex-shrink:0;min-width:95px;padding-top:2px;}
+      .tbl-wrap td[data-label=""],.table-wrap td[data-label=""]{display:none;}
+      .tbl-wrap td[data-label="Actions"],.table-wrap td[data-label="Actions"]{flex-direction:column;align-items:flex-start;gap:6px;}
+      .tbl-wrap td[data-label="Actions"] .action-cell,.table-wrap td[data-label="Actions"] .action-cell{flex-wrap:wrap;gap:6px;}
+      .tbl-wrap tr.expand-row,.tbl-wrap tr.school-expand-row{display:none;}
+      .tbl-wrap tfoot tr,.table-wrap tfoot tr{display:block;border-top:2px solid var(--border);padding:8px 12px;font-weight:700;}
+      .tbl-wrap tfoot td,.table-wrap tfoot td{border-bottom:none!important;background:transparent!important;}
+      .table-wrap{overflow-x:visible;}
+    }
+    @media(max-width:520px){
+      .search-box{display:none;}
+      .search-btn-mobile{display:flex;}
+      .topbar-actions{gap:6px;}
+      .stats-row{grid-template-columns:1fr 1fr!important;}
+      .card-head{flex-direction:column;align-items:flex-start;gap:8px;}
+    }
+  </style>
+</head>
+<body>
+
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
+<!-- ══════════════════════════════════════
+     SIDEBAR
+══════════════════════════════════════ -->
+<div class="sidebar-overlay"></div>
+
+<aside class="sidebar" role="navigation" aria-label="Admin navigation">
+  <div class="sidebar-brand"><div class="sidebar-brand-box"><img src="lunchbox-logo-horiz.png" alt="Lunch Box Program" width="148"></div></div>
+  <nav class="sidebar-nav" aria-label="Primary">
+    <div class="nav-group">
+      <div class="nav-group-label" aria-hidden="true">Main</div>
+      <a href="index.html" class="nav-link"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a>
+      <a href="meals-menus.html" class="nav-link"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>Meals &amp; Menus</a>
+      <a href="food-schedule.html" class="nav-link"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path stroke-linecap="round" d="M16 2v4M8 2v4M3 10h18"/></svg>Food Schedule</a>
+      <a href="schools.html" class="nav-link"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21V9l9-6 9 6v12M9 21V12h6v9"/></svg>Schools &amp; Teachers</a>
+      <a href="parents.html" class="nav-link active" aria-current="page"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m4-4a4 4 0 100-8 4 4 0 000 8z"/></svg>Parents &amp; Students</a>
+      <a href="reports.html" class="nav-link"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>Reports</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" aria-hidden="true">System</div>
+      <a href="settings.html" class="nav-link"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>Settings</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <a href="#" class="nav-link"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h5a2 2 0 012 2v1"/></svg>Log Out</a>
+  </div>
+</aside>
+
+<!-- ══════════════════════════════════════
+     MAIN WRAP
+══════════════════════════════════════ -->
+<div class="main-wrap">
+
+  <!-- TOPBAR -->
+  <header class="topbar" role="banner">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleMobileNav()" aria-label="Open navigation" aria-expanded="false"><svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      <nav class="topbar-breadcrumb" aria-label="Breadcrumb">
+      <a href="index.html">Dashboard</a>
+      <span class="topbar-breadcrumb-sep" aria-hidden="true">/</span>
+      <span class="topbar-breadcrumb-current" aria-current="page">Parents &amp; Students</span>
+    </nav>
+    </div>
+    <div class="topbar-actions">
+      <div class="search-box" role="search">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+        <input type="search" placeholder="Search…" aria-label="Search admin">
+      </div>
+      <button class="search-btn-mobile" aria-label="Search" onclick="var sb=this.closest('header').querySelector('.search-box');sb.style.display='flex';sb.querySelector('input').focus();this.style.display='none';"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/></svg></button>
+      <div class="user-menu">
+        <div class="topbar-user-chip" role="button" aria-label="Admin user menu" tabindex="0" onclick="toggleUserMenu()" onkeydown="if(event.key==='Enter'||event.key===' ')toggleUserMenu()">
+          <div class="topbar-user-avatar" aria-hidden="true">AD</div>
+          <span>Admin</span>
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px;color:#94a3b8;" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </div>
+        <div class="user-dropdown" id="user-dropdown">
+
+          <a href="#"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h5a2 2 0 012 2v1"/></svg>Log Out</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main id="main-content" tabindex="-1">
+
+    <div style="margin-bottom:24px;">
+      <h1 style="font-size:22px;font-weight:700;color:var(--text-1);">Parents &amp; Students</h1>
+      <p style="font-size:13px;color:var(--text-2);margin-top:3px;">Manage registered parents and students.</p>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row" role="region" aria-label="Summary statistics">
+      <div class="stat-card">
+        <div class="stat-label">Total Parents</div>
+        <div class="stat-value">248</div>
+        <div class="stat-sub">Across all schools</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Students</div>
+        <div class="stat-value">412</div>
+        <div class="stat-sub">Actively enrolled</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg. Balance</div>
+        <div class="stat-value" style="color:var(--green-dk);">$38.40</div>
+        <div class="stat-sub">Per account</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Low Balance Alerts</div>
+        <div class="stat-value" style="color:var(--red);">14</div>
+        <div class="stat-sub">Accounts under $5</div>
+      </div>
+    </div>
+
+    <!-- SEARCH BAR -->
+    <div class="search-bar" role="search" aria-label="Search parents and students">
+      <div class="search-field">
+        <label for="global-search">Search</label>
+        <div class="search-input-wrap">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input
+            type="search"
+            id="global-search"
+            class="search-input"
+            placeholder="Name, email, student name…"
+            aria-label="Search by name or email"
+            oninput="filterAll()"
+          >
+        </div>
+      </div>
+      <div class="filter-field">
+        <label for="school-filter">School</label>
+        <select id="school-filter" class="filter-select" aria-label="Filter by school" onchange="filterAll()">
+          <option value="">All Schools</option>
+          <option>AACS - Annap Middle</option>
+          <option>AACS - Severn Lower</option>
+          <option>Baltimore Junior Academy</option>
+          <option>Forcey Christian</option>
+          <option>Friends Community School</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label for="status-filter">Status</label>
+        <select id="status-filter" class="filter-select" aria-label="Filter by status" onchange="filterAll()">
+          <option value="">All Statuses</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+          <option value="pending">Pending</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('addParentModal')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        Add Parent
+      </button>
+    </div>
+
+    <!-- TABS -->
+    <div class="card">
+      <div class="card-header" style="padding-bottom:0; border-bottom:none;">
+        <div role="tablist" aria-label="View by parent or student" class="tabs-bar" style="border-bottom:none; flex:1;">
+          <button
+            role="tab"
+            id="tab-parents"
+            aria-selected="true"
+            aria-controls="panel-parents"
+            class="tab-btn"
+            onclick="switchTab('parents')"
+          >
+            Parents
+            <span class="tab-count" id="parent-count">248</span>
+          </button>
+          <button
+            role="tab"
+            id="tab-students"
+            aria-selected="false"
+            aria-controls="panel-students"
+            class="tab-btn"
+            onclick="switchTab('students')"
+            tabindex="-1"
+          >
+            Students
+            <span class="tab-count" id="student-count">412</span>
+          </button>
+        </div>
+        <div style="display:flex;gap:8px;padding-bottom:12px;">
+          <button class="btn btn-secondary btn-sm" onclick="exportTable()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export
+          </button>
+        </div>
+      </div>
+
+      <!-- PARENTS TABLE -->
+      <div id="panel-parents" role="tabpanel" aria-labelledby="tab-parents" class="tab-panel active">
+        <div class="table-wrap">
+          <table aria-label="Parents list">
+            <thead>
+              <tr>
+                <th scope="col">Parent</th>
+                <th scope="col">Students</th>
+                <th scope="col">School</th>
+                <th scope="col">Balance</th>
+                <th scope="col">Status</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="parents-tbody">
+
+              <tr data-name="jennifer kim" data-school="maplewood elementary" data-status="active">
+                <td data-label="Parent">
+                  <div class="person-cell">
+                    <div class="avatar av-orange" aria-hidden="true">JK</div>
+                    <div>
+                      <div class="person-name">Jennifer Kim</div>
+                      <div class="person-email">jennifer.kim@email.com</div>
+                    </div>
+                  </div>
+                </td>
+                <td data-label="Students">
+                  <div class="pill-list">
+                    <span class="pill">Lily Kim (Gr. 3)</span>
+                    <span class="pill">Sam Kim (Gr. 1)</span>
+                  </div>
+                </td>
+                <td data-label="School">AACS - Annap Middle</td>
+                <td data-label="Balance"><span class="bal-healthy">$62.50</span></td>
+                <td data-label="Status"><span class="badge badge-active">Active</span></td>
+                <td data-label="Actions">
+                  <div class="action-cell">
+                    <button class="btn btn-ghost btn-xs" onclick="openParentModal('Jennifer Kim', 'jennifer.kim@email.com', 62.50, 'healthy', 'Maplewood Elementary', 'active')" aria-label="View profile for Jennifer Kim">View</button>
+                    <button class="btn btn-ghost btn-xs" style="color:var(--green);" onclick="openChargeModal('Jennifer Kim', 'jennifer.kim@email.com', 62.50)" aria-label="Charge Jennifer Kim">Charge</button>
+                    <button class="btn btn-secondary btn-xs" onclick="openOrdersModal('Jennifer Kim')" aria-label="View orders for Jennifer Kim">Orders</button>
+                    <button class="btn btn-ghost btn-xs" style="color:var(--orange);" onclick="openRefundModal('Jennifer Kim', 'jennifer.kim@email.com', 62.50, 'healthy')" aria-label="Issue refund to Jennifer Kim">Refund</button>
+                    <button class="btn btn-ghost btn-xs" style="color:var(--red);white-space:nowrap;" onclick="openCancelOrderModal('Jennifer Kim')" aria-label="Cancel order for Jennifer Kim">Cancel Order</button>
+                  </div>
+                </td>
+              </tr>
+
+              <tr data-name="marcus johnson" data-school="riverside academy" data-status="active">
+                <td data-label="Parent">
+                  <div class="person-cell">
+                    <div class="avatar av-green" aria-hidden="true">MJ</div>
+                    <div>
+                      <div class="person-name">Marcus Johnson</div>
+                      <div class="person-email">m.johnson@email.com</div>
+                    </div>
+                  </div>
+                </td>
+                <td data-label="Students">
+                  <div class="pill-list">
+                    <span class="pill">Tyler Johnson (Gr. 5)</span>
+                  </div>
+                </td>
+                <td data-label="School">Riverside Academy</td>
+                <td data-label="Balance"><span class="bal-low">$4.75</span></td>
+                <td data-label="Status"><span class="badge badge-active">Active</span></td>
+                <td data-label="Actions">
+                  <div class="action-cell">
+                    <button class="btn btn-ghost btn-xs" onclick="openParentModal('Marcus Johnson', 'm.johnson@email.com', 4.75, 'low', 'Riverside Academy', 'active')" aria-label="View profile for Marcus Johnson">View</button>
+                    <button class="btn btn-ghost btn-xs" style="color:var(--green);" onclick="openChargeModal('Marcus Johnson', 'm.johnson@email.com', 4.75)" aria-label="Charge Marcus Johnson">Charge</button>
+                    <button class="btn btn-secondary btn-xs" onclick="openOrdersModal('Marcus Johnson')" aria-label="View orders for Marcus Johnson">Orders</button>
+                    <button class="btn btn-ghost btn-xs" style="color:var(--orange);" onclick="openRefundModal('Marcus Johnson', 'm.johnson@email.com', 4.75, 'low')" aria-label="Issue refund to Marcus Johnson">Refund</button>
+                    <button class="btn btn-ghost btn-xs" style="color:var(--red);white-space:nowrap;" onclick="openCancelOrderModal('Marcus Johnson')" aria-label="Cancel order for Marcus Johnson">Cancel Order</button>
+                  </div>
+                </td>
+              </tr>
+
+              <tr data-name="sarah chen" data-school="lincoln elementary" data-status="active">
+                <td data-label="Parent">
+                  <div class="person-cell">
+                    <div class="avatar av-blue" aria-hidden="true">SC</div>
+                    <div>
+                      <div class="person-name">Sarah Chen</div>
+                      <div class="person-email">s.chen@email.com</div>
+                    </div>
+                  </div>
+                </td>
+                <td data-label="Students">
+                  <div class="pill-list">
+                    <span class="pill">Mei Chen (Gr. 2)</span>
+                    <span class="pill">Jake Chen (Gr. 4)</span>
+                    <span class="pill">Amy Chen (K)</span>
+                  </div>
+                </td>
+                <td data-label="School">Friends Community School</td>
+                <td data-label="Balance"><span class="bal-healthy">$120.00</span></td>
+                <td data-label="Status"><span class="badge badge-active">Active</span></td>
+                <td data-label="Actions">
+                  <div class="action-cell">
+                    <button class="btn btn-ghost btn-xs" onclick="openParentModal('Sarah Chen', 's.chen@email.com', 120.00, 'healthy', 'Lincoln Elementary', 'active')" aria-label="View profile for Sarah Chen">View</button>
+                    <button class="btn btn-ghost btn-xs" style="color:var(--green);" onclick="openChargeModal('Sarah Chen', 's.chen@email.com', 120.00)" aria-label="Charge Sarah Chen">Charge</button>
+                    <button class="btn btn-secondary btn-xs" onclick="openOrdersModal('Sarah Chen')" aria-label="View orders for Sarah Chen">Orders</button>
+                    <button class="btn btn-ghost btn-xs" style="color:var(--orange);" onclick="openRefundModal('Sarah Chen', 's.chen@email.com', 120.00, 'healthy')" aria-label="Issue refund to Sarah Chen">Refund</button>
+                    <button class="btn btn-ghost btn-xs" style="color:var(--red);white-space:nowrap;" onclick="openCancelOrderModal('Sarah Chen')" aria-label="Cancel order for Sarah Chen">Cancel Order</button>
+                  </div>
+                </td>
+              </tr>
+
+              <tr data-name="david miller" data-school="cedar park school" data-status="pending">
+                <td data-label="Parent">
+                  <div class="person-cell">
+                    <div class="avatar av-purple" aria-hidden="true">DM</div>
+                    <div>
+                      <div class="person-name">David Miller</div>
+                      <div class="person-email">david.m@email.com</div>
+                    </div>
+                  </div>
+                </td>
+                <td data-label="Students">
+                  <div class="pill-list">
+                    <span class="pill">Emma Miller (Gr. 1)</span>
+                  </div>
+                </td>
+                <td data-label="School">Gateway School</td>
+                <td data-label="Balance"><span class="bal-zero">$0.00</span></td>
+                <td data-label="Status"><span class="badge badge-pending">Pending</span></td>
+                <td data-label="Actions">
+                  <div class="action-cell">
+                    <button class="btn btn-ghost btn-xs" onclick="openParentModal('David Miller', 'david.m@email.com', 0, 'zero', 'Cedar Park School', 'pending')" aria-label="View profile for David Miller">View</button>
+                    <button class="btn btn-ghost btn-xs" style="color:var(--green);" onclick="openChargeModal('David Miller', 'david.m@email.com', 0)" aria-label="Charge David Miller">Charge</button>
+                  </div>
+                </td>
+              </tr>
+
+              <tr data-name="lisa patel" data-school="sunnydale school" data-status="active">
+                <td data-label="Parent">
+                  <div class="person-cell">
+                    <div class="avatar av-orange" aria-hidden="true">LP</div>
+                    <div>
+                      <div class="person-name">Lisa Patel</div>
+                      <div class="person-email">l.patel@email.com</div>
+                    </div>
+                  </div>
+                </td>
+                <td data-label="Students">
+                  <div class="pill-list">
+                    <span class="pill">Arjun Patel (Gr. 3)</span>
+                    <span class="pill">Priya Patel (Gr. 5)</span>
+                  </div>
+                </td>
+                <td data-label="School">Gateway School</td>
+                <td data-label="Balance"><span class="bal-healthy">$45.25</span></td>
+                <td data-label="Status"><span class="badge badge-active">Active</span></td>
+                <td data-label="Actions">
+                  <div class="action-cell">
+                    <button class="btn btn-ghost btn-xs" onclick="openParentModal('Lisa Patel', 'l.patel@email.com', 45.25, 'healthy', 'Sunnydale School', 'active')" aria-label="View profile for Lisa Patel">View</button>
+                    <button class="btn btn-ghost btn-xs" style="color:var(--green);" onclick="openChargeModal('Lisa Patel', 'l.patel@email.com', 45.25)" aria-label="Charge Lisa Patel">Charge</button>
+                    <button class="btn btn-secondary btn-xs" onclick="openOrdersModal('Lisa Patel')" aria-label="View orders for Lisa Patel">Orders</button>
+                    <button class="btn btn-ghost btn-xs" style="color:var(--orange);" onclick="openRefundModal('Lisa Patel', 'l.patel@email.com', 45.25, 'healthy')" aria-label="Issue refund to Lisa Patel">Refund</button>
+                    <button class="btn btn-ghost btn-xs" style="color:var(--red);white-space:nowrap;" onclick="openCancelOrderModal('Lisa Patel')" aria-label="Cancel order for Lisa Patel">Cancel Order</button>
+                  </div>
+                </td>
+              </tr>
+
+              <tr data-name="robert torres" data-school="maplewood elementary" data-status="inactive">
+                <td data-label="Parent">
+                  <div class="person-cell">
+                    <div class="avatar av-green" aria-hidden="true">RT</div>
+                    <div>
+                      <div class="person-name">Robert Torres</div>
+                      <div class="person-email">r.torres@email.com</div>
+                    </div>
+                  </div>
+                </td>
+                <td data-label="Students">
+                  <div class="pill-list">
+                    <span class="pill">Carlos Torres (Gr. 4)</span>
+                  </div>
+                </td>
+                <td data-label="School">AACS - Annap Middle</td>
+                <td data-label="Balance"><span class="bal-credit">$12.00</span></td>
+                <td data-label="Status"><span class="badge badge-inactive">Inactive</span></td>
+                <td data-label="Actions">
+                  <div class="action-cell">
+                    <button class="btn btn-ghost btn-xs" onclick="openParentModal('Robert Torres', 'r.torres@email.com', 12, 'healthy', 'Maplewood Elementary', 'inactive')" aria-label="View profile for Robert Torres">View</button>
+                    <button class="btn btn-ghost btn-xs" style="color:var(--green);" onclick="openChargeModal('Robert Torres', 'r.torres@email.com', 12)" aria-label="Charge Robert Torres">Charge</button>
+                    <button class="btn btn-secondary btn-xs" aria-label="Reactivate account for Robert Torres">Reactivate</button>
+                  </div>
+                </td>
+              </tr>
+
+              <tr class="no-results-row" id="parents-no-results">
+                <td colspan="6" data-label="Parent">No parents match your search criteria.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" aria-label="Pagination for parents table">
+          <span>Showing 1–6 of 248 parents</span>
+          <div class="page-btns" role="group" aria-label="Page navigation">
+            <button class="page-btn" aria-label="Previous page" disabled>&#8249;</button>
+            <button class="page-btn active" aria-label="Page 1, current">1</button>
+            <button class="page-btn" aria-label="Page 2">2</button>
+            <button class="page-btn" aria-label="Page 3">3</button>
+            <span style="padding:0 4px;line-height:32px;color:var(--text-3);">…</span>
+            <button class="page-btn" aria-label="Page 42">42</button>
+            <button class="page-btn" aria-label="Next page">&#8250;</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STUDENTS TABLE -->
+      <div id="panel-students" role="tabpanel" aria-labelledby="tab-students" class="tab-panel">
+        <div class="table-wrap">
+          <table aria-label="Students list">
+            <thead>
+              <tr>
+                <th scope="col">Student</th>
+                <th scope="col">Parent / Guardian</th>
+                <th scope="col">School</th>
+                <th scope="col">Teacher</th>
+                <th scope="col">Grade</th>
+                <th scope="col">Dietary</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="students-tbody">
+
+              <tr data-name="lily kim" data-school="maplewood elementary" data-status="active">
+                <td data-label="Student">
+                  <div class="person-cell">
+                    <div class="avatar av-green" aria-hidden="true">LK</div>
+                    <div>
+                      <div class="person-name">Lily Kim</div>
+                      <div class="person-email">ID #2041</div>
+                    </div>
+                  </div>
+                </td>
+                <td data-label="Parent / Guardian">Jennifer Kim</td>
+                <td data-label="School">AACS - Annap Middle</td>
+                <td data-label="Teacher">Ms. Thompson</td>
+                <td data-label="Grade"><span class="badge badge-active" style="font-size:11px;">Grade 3</span></td>
+                <td style="color:var(--text-3);font-size:13px;" data-label="Dietary">—</td>
+                <td data-label="Actions">
+                  <div class="action-cell">
+                    <button class="btn btn-ghost btn-xs" aria-label="Edit profile for Lily Kim">Edit Profile</button>
+                    <button class="btn btn-secondary btn-xs" aria-label="View orders for Lily Kim">Orders</button>
+                  </div>
+                </td>
+              </tr>
+
+              <tr data-name="tyler johnson" data-school="riverside academy" data-status="active">
+                <td data-label="Student">
+                  <div class="person-cell">
+                    <div class="avatar av-blue" aria-hidden="true">TJ</div>
+                    <div>
+                      <div class="person-name">Tyler Johnson</div>
+                      <div class="person-email">ID #2055</div>
+                    </div>
+                  </div>
+                </td>
+                <td data-label="Parent / Guardian">Marcus Johnson</td>
+                <td data-label="School">Riverside Academy</td>
+                <td data-label="Teacher">Mr. Ramirez</td>
+                <td data-label="Grade"><span class="badge badge-active" style="font-size:11px;">Grade 5</span></td>
+                <td style="color:var(--yellow);font-size:13px;font-weight:600;" data-label="Dietary">Nut-free</td>
+                <td data-label="Actions">
+                  <div class="action-cell">
+                    <button class="btn btn-ghost btn-xs" aria-label="Edit profile for Tyler Johnson">Edit Profile</button>
+                    <button class="btn btn-secondary btn-xs" aria-label="View orders for Tyler Johnson">Orders</button>
+                  </div>
+                </td>
+              </tr>
+
+              <tr data-name="mei chen" data-school="lincoln elementary" data-status="active">
+                <td data-label="Student">
+                  <div class="person-cell">
+                    <div class="avatar av-orange" aria-hidden="true">MC</div>
+                    <div>
+                      <div class="person-name">Mei Chen</div>
+                      <div class="person-email">ID #2018</div>
+                    </div>
+                  </div>
+                </td>
+                <td data-label="Parent / Guardian">Sarah Chen</td>
+                <td data-label="School">Friends Community School</td>
+                <td data-label="Teacher">Ms. Nguyen</td>
+                <td data-label="Grade"><span class="badge badge-active" style="font-size:11px;">Grade 2</span></td>
+                <td style="color:var(--red);font-size:13px;font-weight:600;" data-label="Dietary">Vegetarian</td>
+                <td data-label="Actions">
+                  <div class="action-cell">
+                    <button class="btn btn-ghost btn-xs" aria-label="Edit profile for Mei Chen">Edit Profile</button>
+                    <button class="btn btn-secondary btn-xs" aria-label="View orders for Mei Chen">Orders</button>
+                  </div>
+                </td>
+              </tr>
+
+              <tr data-name="emma miller" data-school="cedar park school" data-status="pending">
+                <td data-label="Student">
+                  <div class="person-cell">
+                    <div class="avatar av-purple" aria-hidden="true">EM</div>
+                    <div>
+                      <div class="person-name">Emma Miller</div>
+                      <div class="person-email">ID #2097</div>
+                    </div>
+                  </div>
+                </td>
+                <td data-label="Parent / Guardian">David Miller</td>
+                <td data-label="School">Gateway School</td>
+                <td data-label="Teacher">Ms. Patel</td>
+                <td data-label="Grade"><span class="badge badge-active" style="font-size:11px;">Grade 1</span></td>
+                <td style="color:var(--text-3);font-size:13px;" data-label="Dietary">—</td>
+                <td data-label="Actions">
+                  <div class="action-cell">
+                    <button class="btn btn-ghost btn-xs" aria-label="Edit profile for Emma Miller">Edit Profile</button>
+                    <button class="btn btn-secondary btn-xs" aria-label="View orders for Emma Miller">Orders</button>
+                  </div>
+                </td>
+              </tr>
+
+              <tr data-name="arjun patel" data-school="sunnydale school" data-status="active">
+                <td data-label="Student">
+                  <div class="person-cell">
+                    <div class="avatar av-green" aria-hidden="true">AP</div>
+                    <div>
+                      <div class="person-name">Arjun Patel</div>
+                      <div class="person-email">ID #2063</div>
+                    </div>
+                  </div>
+                </td>
+                <td data-label="Parent / Guardian">Lisa Patel</td>
+                <td data-label="School">Gateway School</td>
+                <td data-label="Teacher">Mr. Davis</td>
+                <td data-label="Grade"><span class="badge badge-active" style="font-size:11px;">Grade 3</span></td>
+                <td style="color:var(--text-3);font-size:13px;" data-label="Dietary">—</td>
+                <td data-label="Actions">
+                  <div class="action-cell">
+                    <button class="btn btn-ghost btn-xs" aria-label="Edit profile for Arjun Patel">Edit Profile</button>
+                    <button class="btn btn-secondary btn-xs" aria-label="View orders for Arjun Patel">Orders</button>
+                  </div>
+                </td>
+              </tr>
+
+              <tr data-name="sam kim" data-school="maplewood elementary" data-status="active">
+                <td data-label="Student">
+                  <div class="person-cell">
+                    <div class="avatar av-orange" aria-hidden="true">SK</div>
+                    <div>
+                      <div class="person-name">Sam Kim</div>
+                      <div class="person-email">ID #2042</div>
+                    </div>
+                  </div>
+                </td>
+                <td data-label="Parent / Guardian">Jennifer Kim</td>
+                <td data-label="School">AACS - Annap Middle</td>
+                <td data-label="Teacher">Mrs. Clark</td>
+                <td data-label="Grade"><span class="badge badge-active" style="font-size:11px;">Grade 1</span></td>
+                <td style="color:var(--text-3);font-size:13px;" data-label="Dietary">—</td>
+                <td data-label="Actions">
+                  <div class="action-cell">
+                    <button class="btn btn-ghost btn-xs" aria-label="Edit profile for Sam Kim">Edit Profile</button>
+                    <button class="btn btn-secondary btn-xs" aria-label="View orders for Sam Kim">Orders</button>
+                  </div>
+                </td>
+              </tr>
+
+              <tr class="no-results-row" id="students-no-results">
+                <td colspan="7" data-label="Student">No students match your search criteria.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" aria-label="Pagination for students table">
+          <span>Showing 1–6 of 412 students</span>
+          <div class="page-btns" role="group" aria-label="Page navigation">
+            <button class="page-btn" aria-label="Previous page" disabled>&#8249;</button>
+            <button class="page-btn active" aria-label="Page 1, current">1</button>
+            <button class="page-btn" aria-label="Page 2">2</button>
+            <button class="page-btn" aria-label="Page 3">3</button>
+            <span style="padding:0 4px;line-height:32px;color:var(--text-3);">…</span>
+            <button class="page-btn" aria-label="Page 69">69</button>
+            <button class="page-btn" aria-label="Next page">&#8250;</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /card -->
+
+  </main>
+</div><!-- /main-wrap -->
+
+<!-- ══════════════════════════════════════
+     PARENT PROFILE MODAL
+══════════════════════════════════════ -->
+<div
+  class="modal-overlay"
+  id="parentModal"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="parentModalTitle"
+  onclick="handleOverlayClick(event, 'parentModal')"
+>
+  <div class="modal" role="document">
+    <div class="modal-header">
+      <h2 class="modal-title" id="parentModalTitle">Parent Profile</h2>
+      <button class="modal-close" onclick="closeModal('parentModal')" aria-label="Close parent profile">&times;</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Parent Info -->
+      <div class="modal-section">
+        <div class="modal-section-title">Account Information</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="pm-first">First Name</label>
+            <input type="text" id="pm-first" class="form-control" value="Jennifer" aria-label="Parent first name">
+          </div>
+          <div class="form-group">
+            <label for="pm-last">Last Name</label>
+            <input type="text" id="pm-last" class="form-control" value="Kim" aria-label="Parent last name">
+          </div>
+          <div class="form-group">
+            <label for="pm-email">Email Address</label>
+            <input type="email" id="pm-email" class="form-control" value="jennifer.kim@email.com" aria-label="Parent email address">
+          </div>
+          <div class="form-group">
+            <label for="pm-phone">Phone Number</label>
+            <input type="tel" id="pm-phone" class="form-control" value="(555) 210-3344" aria-label="Parent phone number">
+          </div>
+          <div class="form-group">
+            <label for="pm-school">School</label>
+            <select id="pm-school" class="form-control" aria-label="School">
+              <option selected>Maplewood Elementary</option>
+              <option>Riverside Academy</option>
+              <option>Cedar Park School</option>
+              <option>Lincoln Elementary</option>
+              <option>Sunnydale School</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="pm-status">Account Status</label>
+            <select id="pm-status" class="form-control" aria-label="Account status">
+              <option selected>Active</option>
+              <option>Inactive</option>
+              <option>Pending</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Balance -->
+      <div class="modal-section">
+        <div class="modal-section-title">Account Balance</div>
+        <div class="balance-block">
+          <div>
+            <div class="balance-info-label">Current Balance</div>
+            <div class="balance-amount bal-healthy" id="pm-balance">$62.50</div>
+            <div class="balance-sub">Last funded: April 22, 2026</div>
+          </div>
+          <div class="balance-actions">
+            <button class="btn btn-success" onclick="alert('Add Funds flow would open here')">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              Add Funds
+            </button>
+            <button class="btn btn-secondary" onclick="openRefundFromProfile()" aria-label="Issue refund for this account">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18M3 12l6-6M3 12l6 6"/></svg>
+              Issue Refund
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Students -->
+      <div class="modal-section">
+        <div class="modal-section-title" style="display:flex;justify-content:space-between;align-items:center;">
+          Enrolled Students
+          <button class="btn btn-secondary btn-sm">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            Add Student
+          </button>
+        </div>
+        <div id="pm-students">
+          <div class="student-card">
+            <div class="student-card-left">
+              <div class="avatar av-green" aria-hidden="true" style="width:32px;height:32px;font-size:12px;">LK</div>
+              <div>
+                <div class="person-name">Lily Kim</div>
+                <div class="student-card-meta">Grade 3 · Ms. Thompson · Maplewood Elementary</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-ghost btn-xs" aria-label="Edit Lily Kim's profile">Edit</button>
+              <button class="btn btn-secondary btn-xs" aria-label="View Lily Kim's orders">Orders</button>
+            </div>
+          </div>
+          <div class="student-card">
+            <div class="student-card-left">
+              <div class="avatar av-orange" aria-hidden="true" style="width:32px;height:32px;font-size:12px;">SK</div>
+              <div>
+                <div class="person-name">Sam Kim</div>
+                <div class="student-card-meta">Grade 1 · Mrs. Clark · Maplewood Elementary</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-ghost btn-xs" aria-label="Edit Sam Kim's profile">Edit</button>
+              <button class="btn btn-secondary btn-xs" aria-label="View Sam Kim's orders">Orders</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Orders -->
+      <div class="modal-section">
+        <div class="modal-section-title">Recent Order History</div>
+        <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+          <table class="mini-table" aria-label="Recent orders for this account">
+            <thead>
+              <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Student</th>
+                <th scope="col">Meal</th>
+                <th scope="col">Amount</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td data-label="Date">May 9, 2026</td>
+                <td data-label="Student">Lily Kim</td>
+                <td data-label="Meal">Grilled Chicken Wrap</td>
+                <td data-label="Amount">$5.50</td>
+                <td data-label="Status"><span class="badge badge-active" style="font-size:11px;">Delivered</span></td>
+              </tr>
+              <tr>
+                <td data-label="Date">May 9, 2026</td>
+                <td data-label="Student">Sam Kim</td>
+                <td data-label="Meal">PB&amp;J Sandwich</td>
+                <td data-label="Amount">$4.25</td>
+                <td data-label="Status"><span class="badge badge-active" style="font-size:11px;">Delivered</span></td>
+              </tr>
+              <tr>
+                <td data-label="Date">May 8, 2026</td>
+                <td data-label="Student">Lily Kim</td>
+                <td data-label="Meal">Veggie Pasta Bowl</td>
+                <td data-label="Amount">$5.75</td>
+                <td data-label="Status"><span class="badge badge-active" style="font-size:11px;">Delivered</span></td>
+              </tr>
+              <tr>
+                <td data-label="Date">May 7, 2026</td>
+                <td data-label="Student">Sam Kim</td>
+                <td data-label="Meal">Turkey Sandwich</td>
+                <td data-label="Amount">$4.75</td>
+                <td data-label="Status"><span class="badge badge-active" style="font-size:11px;">Delivered</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top:10px;text-align:right;">
+          <button class="btn btn-ghost btn-sm" style="color:var(--orange);" onclick="openOrdersFromProfile()">View full order history →</button>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" onclick="alert('Deactivate account confirmation')">Deactivate Account</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" onclick="closeModal('parentModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveParent()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     ORDER HISTORY MODAL
+══════════════════════════════════════ -->
+<div
+  class="modal-overlay"
+  id="ordersModal"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="ordersModalTitle"
+  onclick="handleOverlayClick(event, 'ordersModal')"
+>
+  <div class="modal om-modal" role="document">
+    <div class="modal-header">
+      <div>
+        <h2 class="modal-title" id="ordersModalTitle">Order History</h2>
+        <div style="font-size:13px;color:var(--text-3);margin-top:2px;" id="om-subtitle">All orders for this account</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('ordersModal')" aria-label="Close order history">&times;</button>
+    </div>
+    <div class="modal-body" style="padding-bottom:8px;">
+
+      <!-- Parent summary -->
+      <div class="om-summary-bar">
+        <div class="om-avatar" id="om-avatar">JK</div>
+        <div>
+          <div class="om-parent-name" id="om-name">Jennifer Kim</div>
+          <div class="om-parent-email" id="om-email">jennifer.kim@email.com</div>
+        </div>
+        <div class="om-balance-pill">
+          <div class="om-balance-lbl">Balance</div>
+          <div class="om-balance-val bal-healthy" id="om-balance">$62.50</div>
+        </div>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="om-filter-bar">
+        <span class="om-filter-lbl">Student</span>
+        <select class="filter-select" id="om-student-filter" aria-label="Filter by student" onchange="renderOrdersTable()">
+          <option value="">All Students</option>
+        </select>
+        <span class="om-filter-lbl">Status</span>
+        <select class="filter-select" id="om-status-filter" aria-label="Filter by order status" onchange="renderOrdersTable()">
+          <option value="">All Statuses</option>
+          <option value="Complete">Complete</option>
+          <option value="Outstanding">Outstanding</option>
+          <option value="Refunded">Refunded</option>
+          <option value="Canceled">Canceled</option>
+        </select>
+        <span class="om-filter-lbl">From</span>
+        <input type="date" class="filter-input" id="om-from" aria-label="From date" onchange="renderOrdersTable()">
+        <span class="om-filter-lbl">To</span>
+        <input type="date" class="filter-input" id="om-to" aria-label="To date" onchange="renderOrdersTable()">
+        <button class="btn btn-secondary btn-sm" onclick="resetOrdersFilter()">Reset</button>
+      </div>
+
+      <!-- Orders table -->
+      <div class="om-table-wrap">
+        <table class="om-table" aria-label="Order history">
+          <thead>
+            <tr>
+              <th scope="col">Order #</th>
+              <th scope="col">Date</th>
+              <th scope="col">Student</th>
+              <th scope="col">Food Items</th>
+              <th scope="col" style="text-align:right;">Amount</th>
+              <th scope="col">Status</th>
+              <th scope="col"></th>
+            </tr>
+          </thead>
+          <tbody id="om-tbody"></tbody>
+          <tfoot class="om-tfoot" id="om-tfoot"></tfoot>
+        </table>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <div style="font-size:13px;color:var(--text-3);" id="om-showing">Showing all orders</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" onclick="closeModal('ordersModal')">Close</button>
+        <button class="btn btn-secondary" id="om-refund-btn" onclick="openRefundFromOrders()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18M3 12l6-6M3 12l6 6"/></svg>
+          Issue Refund
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     REFUND MODAL
+══════════════════════════════════════ -->
+<div
+  class="modal-overlay"
+  id="refundModal"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="refundModalTitle"
+  onclick="handleOverlayClick(event, 'refundModal')"
+>
+  <div class="modal" role="document" style="max-width:500px;">
+    <div class="modal-header">
+      <h2 class="modal-title" id="refundModalTitle">Issue Refund</h2>
+      <button class="modal-close" onclick="closeModal('refundModal')" aria-label="Close refund form">&times;</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Parent summary -->
+      <div style="background:var(--page-bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--text-1);" id="rf-name">Jennifer Kim</div>
+          <div style="font-size:12px;color:var(--text-3);margin-top:2px;" id="rf-email">jennifer.kim@email.com</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:2px;">Account Balance</div>
+          <div style="font-size:22px;font-weight:700;" id="rf-balance">$62.50</div>
+        </div>
+      </div>
+
+      <!-- Refund amount -->
+      <div class="form-group" style="margin-bottom:16px;">
+        <label for="rf-amount" style="display:block;font-size:13px;font-weight:600;color:var(--text-2);margin-bottom:6px;">
+          Refund Amount <span style="color:var(--red);" aria-hidden="true">*</span>
+        </label>
+        <div style="position:relative;display:flex;align-items:center;">
+          <span style="position:absolute;left:12px;font-size:15px;font-weight:600;color:var(--text-2);pointer-events:none;">$</span>
+          <input
+            type="number"
+            id="rf-amount"
+            class="form-control"
+            style="padding-left:28px;"
+            placeholder="0.00"
+            step="0.01"
+            min="0.01"
+            aria-label="Refund amount in dollars"
+            oninput="updateRefundAvailability()"
+          >
+        </div>
+        <div id="rf-amount-hint" style="font-size:12px;color:var(--text-3);margin-top:5px;">Enter the amount to refund (cannot exceed account balance).</div>
+      </div>
+
+      <!-- Refund destination -->
+      <div style="margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:8px;padding:12px 14px;background:var(--page-bg);border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text-2);">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="flex-shrink:0;color:var(--text-3);" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01"/></svg>
+          Refunds will be credited to the account balance.
+        </div>
+      </div>
+
+      <!-- Reason -->
+      <div class="form-group" style="margin-bottom:16px;">
+        <label for="rf-reason" style="display:block;font-size:13px;font-weight:600;color:var(--text-2);margin-bottom:6px;">
+          Reason <span style="color:var(--red);" aria-hidden="true">*</span>
+        </label>
+        <div style="position:relative;">
+          <select id="rf-reason" class="form-control" aria-label="Reason for refund" onchange="toggleRefundNotes()" style="appearance:none;-webkit-appearance:none;padding-right:36px;cursor:pointer;">
+            <option value="">Select a reason…</option>
+            <option value="duplicate">Duplicate charge</option>
+            <option value="overpay">Overpayment</option>
+            <option value="cancel">Order cancelled</option>
+            <option value="withdraw">Student withdrawn / account closing</option>
+            <option value="satisfaction">Customer satisfaction</option>
+            <option value="error">Admin data entry error</option>
+            <option value="other">Other (explain in notes)</option>
+          </select>
+          <svg style="position:absolute;right:11px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text-3);" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9l6 6 6-6"/></svg>
+        </div>
+      </div>
+
+      <!-- Notes (shown when Other is selected) -->
+      <div class="form-group" id="rf-notes-wrap" style="display:none;margin-bottom:4px;">
+        <label for="rf-notes" style="display:block;font-size:13px;font-weight:600;color:var(--text-2);margin-bottom:6px;">Notes</label>
+        <textarea id="rf-notes" class="form-control" rows="3" placeholder="Describe the reason for this refund…" style="resize:vertical;" aria-label="Refund notes"></textarea>
+      </div>
+
+    </div>
+    <div class="modal-footer" style="align-items:center;">
+      <div style="font-size:12px;color:var(--text-3);">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:middle;margin-right:3px;"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        Refunds are logged and cannot be undone.
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" onclick="closeModal('refundModal')">Cancel</button>
+        <button class="btn btn-primary" id="rf-submit-btn" onclick="processRefund()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18M3 12l6-6M3 12l6 6"/></svg>
+          Process Refund
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     CHARGE MODAL
+══════════════════════════════════════ -->
+<div
+  class="modal-overlay"
+  id="chargeModal"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="chargeModalTitle"
+  onclick="handleOverlayClick(event, 'chargeModal')"
+>
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <h2 class="modal-title" id="chargeModalTitle">Charge Account</h2>
+      <button class="modal-close" onclick="closeModal('chargeModal')" aria-label="Close charge form">&times;</button>
+    </div>
+    <div style="padding:22px 24px 20px;">
+
+      <!-- Parent info -->
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--page-bg);border:1px solid var(--border);border-radius:8px;margin-bottom:20px;">
+        <div id="ch-avatar" style="width:36px;height:36px;border-radius:50%;background:var(--orange-lt);color:var(--orange);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;"></div>
+        <div>
+          <div id="ch-name" style="font-size:14px;font-weight:600;color:var(--text-1);"></div>
+          <div id="ch-email" style="font-size:12px;color:var(--text-3);"></div>
+        </div>
+        <div style="margin-left:auto;text-align:right;">
+          <div style="font-size:11px;color:var(--text-3);margin-bottom:2px;">Balance</div>
+          <div id="ch-balance" style="font-size:14px;font-weight:700;color:var(--text-1);"></div>
+        </div>
+      </div>
+
+      <!-- Amount -->
+      <div class="form-group" style="margin-bottom:16px;">
+        <label for="ch-amount" style="display:block;font-size:13px;font-weight:600;color:var(--text-2);margin-bottom:6px;">
+          Amount <span style="color:var(--red);" aria-hidden="true">*</span>
+        </label>
+        <div style="position:relative;">
+          <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text-3);font-size:14px;pointer-events:none;">$</span>
+          <input type="number" id="ch-amount" class="form-control" min="0.01" step="0.01" placeholder="0.00" style="padding-left:26px;" aria-label="Charge amount">
+        </div>
+      </div>
+
+      <!-- Reason -->
+      <div class="form-group" style="margin-bottom:16px;">
+        <label for="ch-reason" style="display:block;font-size:13px;font-weight:600;color:var(--text-2);margin-bottom:6px;">
+          Reason <span style="color:var(--red);" aria-hidden="true">*</span>
+        </label>
+        <div style="position:relative;">
+          <select id="ch-reason" class="form-control" aria-label="Reason for charge" style="appearance:none;-webkit-appearance:none;padding-right:36px;cursor:pointer;">
+            <option value="">Select a reason…</option>
+            <option value="topup">Account top-up</option>
+            <option value="meal">Meal balance replenishment</option>
+            <option value="fee">Late / admin fee</option>
+            <option value="other">Other</option>
+          </select>
+          <svg style="position:absolute;right:11px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text-3);" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9l6 6 6-6"/></svg>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="form-group" style="margin-bottom:20px;">
+        <label for="ch-notes" style="display:block;font-size:13px;font-weight:600;color:var(--text-2);margin-bottom:6px;">Notes <span style="font-weight:400;color:var(--text-3);">(optional)</span></label>
+        <textarea id="ch-notes" class="form-control" rows="2" placeholder="Additional details…" style="resize:vertical;" aria-label="Charge notes"></textarea>
+      </div>
+
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" onclick="closeModal('chargeModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="processCharge()" style="background:var(--green);border-color:var(--green);">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+          Apply Charge
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     ADD PARENT MODAL
+══════════════════════════════════════ -->
+<div
+  class="modal-overlay"
+  id="addParentModal"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="addParentTitle"
+  onclick="handleOverlayClick(event, 'addParentModal')"
+>
+  <div class="modal" role="document" style="max-width:540px;">
+    <div class="modal-header">
+      <h2 class="modal-title" id="addParentTitle">Add New Parent</h2>
+      <button class="modal-close" onclick="closeModal('addParentModal')" aria-label="Close add parent form">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="ap-first">First Name <span aria-hidden="true" style="color:var(--red);">*</span></label>
+          <input type="text" id="ap-first" class="form-control" placeholder="First name" aria-required="true">
+        </div>
+        <div class="form-group">
+          <label for="ap-last">Last Name <span aria-hidden="true" style="color:var(--red);">*</span></label>
+          <input type="text" id="ap-last" class="form-control" placeholder="Last name" aria-required="true">
+        </div>
+        <div class="form-group form-full">
+          <label for="ap-email">Email Address <span aria-hidden="true" style="color:var(--red);">*</span></label>
+          <input type="email" id="ap-email" class="form-control" placeholder="parent@email.com" aria-required="true">
+        </div>
+        <div class="form-group">
+          <label for="ap-phone">Phone Number</label>
+          <input type="tel" id="ap-phone" class="form-control" placeholder="(555) 000-0000">
+        </div>
+        <div class="form-group">
+          <label for="ap-school">School <span aria-hidden="true" style="color:var(--red);">*</span></label>
+          <select id="ap-school" class="form-control" aria-required="true">
+            <option value="">Select a school…</option>
+            <option>AACS - Annap Middle</option>
+          <option>AACS - Severn Lower</option>
+          <option>Baltimore Junior Academy</option>
+          <option>Forcey Christian</option>
+          <option>Friends Community School</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="ap-initial-balance">Initial Balance ($)</label>
+          <input type="number" id="ap-initial-balance" class="form-control" placeholder="0.00" step="0.01" min="0" aria-label="Initial account balance in dollars">
+        </div>
+        <div class="form-group form-full" style="background:var(--page-bg);border-radius:8px;padding:12px 14px;border:1px solid var(--border);">
+          <p style="font-size:13px;color:var(--text-2);">
+            <strong>Note:</strong> An activation email will be sent to the parent. They will need to set their password and verify their account before logging in.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:flex-end;">
+      <button class="btn btn-secondary" onclick="closeModal('addParentModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addParent()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        Create Account
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     CANCEL ORDER MODAL
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="cancelOrderModal" role="dialog" aria-modal="true" aria-labelledby="cancelOrderTitle" onclick="handleOverlayClick(event, 'cancelOrderModal')">
+  <div class="modal" role="document" style="max-width:480px;">
+    <div class="modal-header">
+      <h2 class="modal-title" id="cancelOrderTitle">Cancel Order</h2>
+      <button class="modal-close" onclick="closeModal('cancelOrderModal')" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <!-- Parent info -->
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--page-bg);border:1px solid var(--border);border-radius:8px;margin-bottom:20px;">
+        <div>
+          <div id="co-name" style="font-size:14px;font-weight:600;color:var(--text-1);"></div>
+          <div id="co-email" style="font-size:12px;color:var(--text-3);margin-top:2px;"></div>
+        </div>
+      </div>
+
+      <!-- Date picker -->
+      <div style="margin-bottom:20px;">
+        <label for="co-date" style="display:block;font-size:13px;font-weight:600;color:var(--text-2);margin-bottom:6px;">Order Date <span style="color:var(--red);" aria-hidden="true">*</span></label>
+        <input type="date" id="co-date" class="form-input" style="width:100%;box-sizing:border-box;" oninput="lookupCancelOrder()" aria-label="Order date">
+      </div>
+
+      <!-- Order results -->
+      <div id="co-results" style="display:none;margin-bottom:20px;">
+        <div style="font-size:13px;font-weight:600;color:var(--text-2);margin-bottom:8px;">Orders on this date</div>
+        <div id="co-order-list" style="border:1px solid var(--border);border-radius:8px;overflow:hidden;"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--page-bg);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;">
+          <span style="font-size:13px;font-weight:600;color:var(--text-2);">Total</span>
+          <span id="co-total" style="font-size:14px;font-weight:700;color:var(--text-1);"></span>
+        </div>
+      </div>
+
+      <!-- No orders message -->
+      <div id="co-no-orders" style="display:none;margin-bottom:20px;padding:12px 14px;background:var(--page-bg);border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text-2);text-align:center;">
+        No orders found for this date.
+      </div>
+
+      <!-- Footer note -->
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-3);margin-bottom:16px;">
+        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Cancellations are logged and cannot be undone.
+      </div>
+
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" onclick="closeModal('cancelOrderModal')">Close</button>
+        <button id="co-confirm-btn" class="btn btn-danger" onclick="processCancelOrder()" disabled style="opacity:.5;cursor:not-allowed;">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          Cancel Order
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════ -->
+<script>
+  /* ── Tab switching ── */
+  function switchTab(tabId) {
+    const tabs = ['parents', 'students'];
+    tabs.forEach(t => {
+      const btn   = document.getElementById('tab-' + t);
+      const panel = document.getElementById('panel-' + t);
+      const isActive = t === tabId;
+      btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      btn.setAttribute('tabindex', isActive ? '0' : '-1');
+      panel.classList.toggle('active', isActive);
+    });
+    filterAll();
+  }
+
+  /* ── Filter ── */
+  function filterAll() {
+    const q       = document.getElementById('global-search').value.toLowerCase().trim();
+    const school  = document.getElementById('school-filter').value.toLowerCase();
+    const status  = document.getElementById('status-filter').value.toLowerCase();
+
+    // Determine which panel is active
+    const activePanel = document.querySelector('.tab-panel.active');
+    const tbody = activePanel.querySelector('tbody');
+    const rows  = tbody.querySelectorAll('tr[data-name]');
+    const noRes = activePanel.querySelector('.no-results-row');
+
+    let visible = 0;
+    rows.forEach(row => {
+      const name    = row.dataset.name;
+      const rowSchool = row.dataset.school;
+      const rowStatus = row.dataset.status;
+
+      const matchQ      = !q || name.includes(q) || row.textContent.toLowerCase().includes(q);
+      const matchSchool = !school || rowSchool.includes(school);
+      const matchStatus = !status || rowStatus === status;
+
+      const show = matchQ && matchSchool && matchStatus;
+      row.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+
+    if (noRes) noRes.classList.toggle('visible', visible === 0);
+  }
+
+  /* ── Modals ── */
+  function openModal(id) {
+    const el = document.getElementById(id);
+    el.classList.add('open');
+    // Focus first interactive element
+    const first = el.querySelector('button, input, select, [tabindex="0"]');
+    if (first) setTimeout(() => first.focus(), 50);
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+  }
+
+  function handleOverlayClick(e, id) {
+    if (e.target === document.getElementById(id)) closeModal(id);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay.open').forEach(el => {
+        el.classList.remove('open');
+      });
+    }
+  });
+
+  /* ── Open Parent Profile Modal ── */
+  function openParentModal(name, email, balance, balType, school, status) {
+    const nameParts = name.split(' ');
+    document.getElementById('pm-first').value = nameParts[0];
+    document.getElementById('pm-last').value  = nameParts.slice(1).join(' ');
+    document.getElementById('pm-email').value  = email;
+    document.getElementById('parentModalTitle').textContent = name + ' — Profile';
+
+    const balEl = document.getElementById('pm-balance');
+    balEl.textContent = '$' + balance.toFixed(2);
+    balEl.className = 'balance-amount';
+    if (balType === 'healthy') balEl.classList.add('bal-healthy');
+    else if (balType === 'low')  balEl.classList.add('bal-low');
+    else if (balType === 'zero') balEl.classList.add('bal-zero');
+    else balEl.classList.add('bal-credit');
+
+    openModal('parentModal');
+  }
+
+  /* ── Save Parent ── */
+  function saveParent() {
+    const btn = event.currentTarget || document.querySelector('#parentModal .btn-primary');
+    const orig = btn ? btn.textContent : '';
+    if (btn) {
+      btn.textContent = '✓ Saved';
+      btn.style.background = 'var(--green)';
+      btn.style.color = '#1a2500';
+      setTimeout(() => {
+        btn.textContent = orig || 'Save Changes';
+        btn.style.background = '';
+        btn.style.color = '';
+        closeModal('parentModal');
+      }, 1200);
+    } else {
+      closeModal('parentModal');
+    }
+  }
+
+  /* ── Add Parent ── */
+  function addParent() {
+    const first  = document.getElementById('ap-first').value.trim();
+    const last   = document.getElementById('ap-last').value.trim();
+    const email  = document.getElementById('ap-email').value.trim();
+    const school = document.getElementById('ap-school').value;
+
+    if (!first || !last || !email || !school) {
+      alert('Please fill in all required fields.');
+      return;
+    }
+
+    alert('Account created for ' + first + ' ' + last + '. Activation email sent to ' + email + '.');
+    closeModal('addParentModal');
+
+    // Reset form
+    ['ap-first','ap-last','ap-email','ap-phone','ap-school','ap-initial-balance']
+      .forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+  }
+
+  /* ── Charge modal ── */
+  function openChargeModal(name, email, balance) {
+    const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    document.getElementById('ch-avatar').textContent   = initials;
+    document.getElementById('ch-name').textContent     = name;
+    document.getElementById('ch-email').textContent    = email;
+    document.getElementById('ch-balance').textContent  = '$' + balance.toFixed(2);
+    document.getElementById('ch-amount').value         = '';
+    document.getElementById('ch-reason').value         = '';
+    document.getElementById('ch-notes').value          = '';
+    openModal('chargeModal');
+  }
+
+  function processCharge() {
+    const amt    = parseFloat(document.getElementById('ch-amount').value) || 0;
+    const reason = document.getElementById('ch-reason').value;
+    if (amt <= 0) {
+      alert('Please enter a valid charge amount.');
+      document.getElementById('ch-amount').focus();
+      return;
+    }
+    if (!reason) {
+      alert('Please select a reason for the charge.');
+      document.getElementById('ch-reason').focus();
+      return;
+    }
+    alert('Charge of $' + amt.toFixed(2) + ' applied successfully.');
+    closeModal('chargeModal');
+  }
+
+  /* ── Cancel Order Modal ── */
+  var _cancelOrderParent = '';
+
+  function openCancelOrderModal(name) {
+    _cancelOrderParent = name;
+    var data = PARENT_ORDERS[name];
+    document.getElementById('co-name').textContent = name;
+    document.getElementById('co-email').textContent = data ? data.email : '';
+    document.getElementById('co-date').value = '';
+    document.getElementById('co-results').style.display = 'none';
+    document.getElementById('co-no-orders').style.display = 'none';
+    var btn = document.getElementById('co-confirm-btn');
+    btn.disabled = true;
+    btn.style.opacity = '.5';
+    btn.style.cursor = 'not-allowed';
+    openModal('cancelOrderModal');
+  }
+
+  function lookupCancelOrder() {
+    var date = document.getElementById('co-date').value;
+    var btn = document.getElementById('co-confirm-btn');
+    document.getElementById('co-results').style.display = 'none';
+    document.getElementById('co-no-orders').style.display = 'none';
+    btn.disabled = true;
+    btn.style.opacity = '.5';
+    btn.style.cursor = 'not-allowed';
+    if (!date) return;
+
+    var data = PARENT_ORDERS[_cancelOrderParent];
+    var orders = data ? data.orders.filter(function(o) { return o.dateVal === date; }) : [];
+
+    if (!orders.length) {
+      document.getElementById('co-no-orders').style.display = 'block';
+      return;
+    }
+
+    var total = orders.reduce(function(sum, o) { return sum + o.amount; }, 0);
+    var rows = orders.map(function(o) {
+      return '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);">'
+        + '<div><div style="font-size:13px;font-weight:600;color:var(--text-1);">' + o.student + ' <span style="font-weight:400;color:var(--text-3);">' + o.id + '</span></div>'
+        + '<div style="font-size:12px;color:var(--text-2);margin-top:2px;">' + o.items + '</div></div>'
+        + '<div style="font-size:13px;font-weight:600;color:var(--text-1);white-space:nowrap;">$' + o.amount.toFixed(2) + '</div>'
+        + '</div>';
+    }).join('');
+
+    document.getElementById('co-order-list').innerHTML = rows;
+    document.getElementById('co-total').textContent = '$' + total.toFixed(2);
+    document.getElementById('co-results').style.display = 'block';
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+  }
+
+  function processCancelOrder() {
+    var date = document.getElementById('co-date').value;
+    var name = _cancelOrderParent;
+    closeModal('cancelOrderModal');
+    alert('Orders for ' + name + ' on ' + date + ' have been cancelled.');
+  }
+
+  /* ── Export ── */
+  function exportTable() {
+    alert('Exporting current view to CSV…');
+  }
+
+  /* ── Refund Modal ── */
+  let _refundBalance = 0;
+
+  function openRefundModal(name, email, balance, balType) {
+    _refundBalance = balance;
+
+    document.getElementById('rf-name').textContent    = name;
+    document.getElementById('rf-email').textContent   = email;
+
+    const balEl = document.getElementById('rf-balance');
+    balEl.textContent = '$' + balance.toFixed(2);
+    balEl.className = '';
+    if (balType === 'healthy')     balEl.style.color = 'var(--green-dk)';
+    else if (balType === 'low')    balEl.style.color = 'var(--yellow)';
+    else if (balType === 'zero')   balEl.style.color = 'var(--red)';
+    else                           balEl.style.color = 'var(--text-2)';
+
+    // Reset form
+    document.getElementById('rf-amount').value     = '';
+    document.getElementById('rf-reason').value     = '';
+    document.getElementById('rf-notes').value      = '';
+    document.getElementById('rf-notes-wrap').style.display = 'none';
+    document.getElementById('rf-amount-hint').textContent = 'Enter the amount to refund (cannot exceed account balance).';
+    document.getElementById('rf-amount-hint').style.color = 'var(--text-3)';
+
+    openModal('refundModal');
+  }
+
+  // Called from inside the parent profile modal
+  function openRefundFromProfile() {
+    const name    = document.getElementById('pm-first').value + ' ' + document.getElementById('pm-last').value;
+    const email   = document.getElementById('pm-email').value;
+    const balText = document.getElementById('pm-balance').textContent.replace('$', '');
+    const balance = parseFloat(balText) || 0;
+    const cls     = document.getElementById('pm-balance').className;
+    const balType = cls.includes('healthy') ? 'healthy' : cls.includes('low') ? 'low' : cls.includes('zero') ? 'zero' : 'credit';
+
+    closeModal('parentModal');
+    setTimeout(() => openRefundModal(name, email, balance, balType), 200);
+  }
+
+  function updateRefundAvailability() {
+    const amt = parseFloat(document.getElementById('rf-amount').value) || 0;
+    const hint = document.getElementById('rf-amount-hint');
+    if (amt > _refundBalance) {
+      hint.textContent = '⚠ Amount exceeds the current account balance of $' + _refundBalance.toFixed(2) + '.';
+      hint.style.color = 'var(--red)';
+    } else if (amt <= 0 && document.getElementById('rf-amount').value !== '') {
+      hint.textContent = '⚠ Amount must be greater than $0.00.';
+      hint.style.color = 'var(--red)';
+    } else {
+      hint.textContent = 'Enter the amount to refund (cannot exceed account balance).';
+      hint.style.color = 'var(--text-3)';
+    }
+  }
+
+  function toggleRefundNotes() {
+    const reason = document.getElementById('rf-reason').value;
+    document.getElementById('rf-notes-wrap').style.display = reason === 'other' ? '' : 'none';
+  }
+
+
+  /* ══════════════════════════════════════
+     ORDER HISTORY MODAL
+  ══════════════════════════════════════ */
+
+  const PARENT_ORDERS = {
+    'Jennifer Kim': {
+      email: 'jennifer.kim@email.com', balance: 62.50, balType: 'healthy',
+      students: ['Lily Kim', 'Sam Kim'],
+      orders: [
+        { id: '#2215', date: 'Jun 5, 2026',  dateVal: '2026-06-05', student: 'Lily Kim',  items: '1 - Cookie, 1 - Pizza Bagel VG, 1 - Veggie of the Day',    amount: 12.50, status: 'Complete' },
+        { id: '#2214', date: 'Jun 5, 2026',  dateVal: '2026-06-05', student: 'Sam Kim',   items: '1 - Grilled Cheese Combo, 1 - 100% Apple Juice',           amount:  8.50, status: 'Complete' },
+        { id: '#2198', date: 'May 30, 2026', dateVal: '2026-05-30', student: 'Lily Kim',  items: '1 - Chicken Tenders (3), 1 - Dessert: Brownie',            amount:  9.50, status: 'Complete' },
+        { id: '#2197', date: 'May 30, 2026', dateVal: '2026-05-30', student: 'Sam Kim',   items: '1 - Sun Butter & Jelly on Wheat, 1 - Side: String Cheese', amount:  7.00, status: 'Complete' },
+        { id: '#2180', date: 'May 22, 2026', dateVal: '2026-05-22', student: 'Lily Kim',  items: '1 - BBQ Rib Sandwich, 1 - Curly Fries, 1 - Veggie of Day', amount: 11.00, status: 'Complete' },
+        { id: '#2179', date: 'May 22, 2026', dateVal: '2026-05-22', student: 'Sam Kim',   items: '1 - Pizza Bagel VG',                                       amount:  5.50, status: 'Outstanding' },
+        { id: '#2155', date: 'May 15, 2026', dateVal: '2026-05-15', student: 'Lily Kim',  items: '1 - Tenders & Tots, 1 - Dessert: Cake of the Week',        amount: 10.00, status: 'Complete' },
+        { id: '#2154', date: 'May 15, 2026', dateVal: '2026-05-15', student: 'Sam Kim',   items: '1 - Grilled Cheese Combo with Soup of Week',               amount:  7.50, status: 'Refunded' },
+        { id: '#2130', date: 'May 8, 2026',  dateVal: '2026-05-08', student: 'Lily Kim',  items: '1 - Italian Sandwich on Potato Roll w/ Provolone',         amount:  8.00, status: 'Complete' },
+        { id: '#2129', date: 'May 8, 2026',  dateVal: '2026-05-08', student: 'Sam Kim',   items: '1 - Chicken Tenders (3), 1 - Dessert: Choc Chip Cookie',   amount:  8.50, status: 'Complete' },
+      ]
+    },
+    'Marcus Johnson': {
+      email: 'm.johnson@email.com', balance: 4.75, balType: 'low',
+      students: ['Tyler Johnson'],
+      orders: [
+        { id: '#2213', date: 'Jun 5, 2026',  dateVal: '2026-06-05', student: 'Tyler Johnson', items: '1 - Tenders & Tots, 1 - 100% Apple Juice',              amount: 9.50,  status: 'Complete' },
+        { id: '#2196', date: 'May 30, 2026', dateVal: '2026-05-30', student: 'Tyler Johnson', items: '1 - BBQ Rib Sandwich, 1 - Curly Fries',                 amount: 10.00, status: 'Outstanding' },
+        { id: '#2178', date: 'May 22, 2026', dateVal: '2026-05-22', student: 'Tyler Johnson', items: '1 - Chicken Tenders (3), 1 - Side: Plain Utz Chips',    amount: 8.00,  status: 'Complete' },
+        { id: '#2153', date: 'May 15, 2026', dateVal: '2026-05-15', student: 'Tyler Johnson', items: '1 - Loaded Baked Potato (Butter & Cheese) GF',          amount: 6.50,  status: 'Complete' },
+        { id: '#2128', date: 'May 8, 2026',  dateVal: '2026-05-08', student: 'Tyler Johnson', items: '1 - Sun Butter & Jelly on Wheat, 1 - Dessert: Brownie', amount: 8.00,  status: 'Complete' },
+      ]
+    },
+    'Sarah Chen': {
+      email: 's.chen@email.com', balance: 120.00, balType: 'healthy',
+      students: ['Mei Chen', 'Jake Chen', 'Amy Chen'],
+      orders: [
+        { id: '#2212', date: 'Jun 5, 2026',  dateVal: '2026-06-05', student: 'Mei Chen',  items: '1 - Pizza Bagel VG, 1 - Veggie of the Day',                amount: 8.50,  status: 'Complete' },
+        { id: '#2211', date: 'Jun 5, 2026',  dateVal: '2026-06-05', student: 'Jake Chen', items: '1 - Chicken Tenders (3), 1 - Dessert: Large Choc Chip Cookie', amount: 9.50, status: 'Complete' },
+        { id: '#2195', date: 'May 30, 2026', dateVal: '2026-05-30', student: 'Mei Chen',  items: '1 - Grilled Cheese Combo with Soup of Week',               amount: 7.50,  status: 'Complete' },
+        { id: '#2194', date: 'May 30, 2026', dateVal: '2026-05-30', student: 'Jake Chen', items: '1 - BBQ Rib Sandwich, 1 - Curly Fries, 1 - Veggie of Day', amount: 11.00, status: 'Complete' },
+        { id: '#2193', date: 'May 30, 2026', dateVal: '2026-05-30', student: 'Amy Chen',  items: '1 - Sun Butter & Jelly, 1 - Apple Juice',                  amount: 7.00,  status: 'Outstanding' },
+        { id: '#2177', date: 'May 22, 2026', dateVal: '2026-05-22', student: 'Mei Chen',  items: '1 - Italian Sandwich on Potato Roll',                      amount: 8.00,  status: 'Complete' },
+        { id: '#2176', date: 'May 22, 2026', dateVal: '2026-05-22', student: 'Jake Chen', items: '1 - Tenders & Tots, 1 - Dessert: Brownie',                 amount: 9.50,  status: 'Complete' },
+        { id: '#2175', date: 'May 22, 2026', dateVal: '2026-05-22', student: 'Amy Chen',  items: '1 - Grilled Cheese Combo',                                 amount: 7.50,  status: 'Complete' },
+      ]
+    },
+    'Lisa Patel': {
+      email: 'l.patel@email.com', balance: 45.25, balType: 'healthy',
+      students: ['Arjun Patel', 'Priya Patel'],
+      orders: [
+        { id: '#2216', date: 'Jun 5, 2026',  dateVal: '2026-06-05', student: 'Arjun Patel', items: '1 - Chicken Tenders (3), 1 - Dessert: Cake of the Week', amount: 9.50,  status: 'Complete' },
+        { id: '#2217', date: 'Jun 5, 2026',  dateVal: '2026-06-05', student: 'Priya Patel', items: '1 - BBQ Rib Sandwich, 1 - Curly Fries, 1 - Veggie of Day', amount: 11.00, status: 'Complete' },
+        { id: '#2199', date: 'May 30, 2026', dateVal: '2026-05-30', student: 'Arjun Patel', items: '1 - Tenders & Tots, 1 - Apple Juice',                    amount: 9.00,  status: 'Complete' },
+        { id: '#2200', date: 'May 30, 2026', dateVal: '2026-05-30', student: 'Priya Patel', items: '1 - Italian Sandwich on Potato Roll w/ Provolone',        amount: 8.00,  status: 'Outstanding' },
+        { id: '#2181', date: 'May 22, 2026', dateVal: '2026-05-22', student: 'Arjun Patel', items: '1 - Pizza Bagel VG, 1 - Veggie of the Day',              amount: 8.00,  status: 'Complete' },
+        { id: '#2182', date: 'May 22, 2026', dateVal: '2026-05-22', student: 'Priya Patel', items: '1 - Chicken Tenders (3), 1 - Dessert: Brownie',           amount: 9.50,  status: 'Complete' },
+      ]
+    }
+  };
+
+  let _ordersParentName = '';
+
+  function openOrdersModal(parentName) {
+    _ordersParentName = parentName;
+    const data = PARENT_ORDERS[parentName];
+    if (!data) return;
+
+    // Populate summary bar
+    const initials = parentName.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
+    document.getElementById('om-avatar').textContent = initials;
+    document.getElementById('om-name').textContent   = parentName;
+    document.getElementById('om-email').textContent  = data.email;
+    document.getElementById('ordersModalTitle').textContent = 'Order History — ' + parentName;
+    document.getElementById('om-subtitle').textContent = data.students.length + ' student' + (data.students.length > 1 ? 's' : '') + ' · ' + data.orders.length + ' total orders';
+
+    const balEl = document.getElementById('om-balance');
+    balEl.textContent = '$' + data.balance.toFixed(2);
+    balEl.className = 'om-balance-val';
+    if (data.balType === 'healthy') balEl.classList.add('bal-healthy');
+    else if (data.balType === 'low')  balEl.classList.add('bal-low');
+    else if (data.balType === 'zero') balEl.classList.add('bal-zero');
+    else balEl.classList.add('bal-credit');
+
+    // Populate student filter
+    const sel = document.getElementById('om-student-filter');
+    sel.innerHTML = '<option value="">All Students</option>';
+    data.students.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s; opt.textContent = s;
+      sel.appendChild(opt);
+    });
+
+    // Reset other filters
+    document.getElementById('om-status-filter').value = '';
+    document.getElementById('om-from').value = '';
+    document.getElementById('om-to').value   = '';
+
+    renderOrdersTable();
+    openModal('ordersModal');
+  }
+
+  function openOrdersFromProfile() {
+    const name = document.getElementById('pm-first').value + ' ' + document.getElementById('pm-last').value;
+    closeModal('parentModal');
+    setTimeout(() => openOrdersModal(name), 200);
+  }
+
+  function resetOrdersFilter() {
+    document.getElementById('om-student-filter').value = '';
+    document.getElementById('om-status-filter').value  = '';
+    document.getElementById('om-from').value = '';
+    document.getElementById('om-to').value   = '';
+    renderOrdersTable();
+  }
+
+  function renderOrdersTable() {
+    const data      = PARENT_ORDERS[_ordersParentName];
+    if (!data) return;
+
+    const filterStudent = document.getElementById('om-student-filter').value;
+    const filterStatus  = document.getElementById('om-status-filter').value;
+    const filterFrom    = document.getElementById('om-from').value;
+    const filterTo      = document.getElementById('om-to').value;
+
+    const STATUS_CLASS = {
+      'Complete':    'badge-complete',
+      'Outstanding': 'badge-outstanding',
+      'Refunded':    'badge-refunded',
+      'Canceled':    'badge-canceled',
+    };
+
+    let filtered = data.orders.filter(o => {
+      if (filterStudent && o.student !== filterStudent) return false;
+      if (filterStatus  && o.status  !== filterStatus)  return false;
+      if (filterFrom    && o.dateVal < filterFrom)       return false;
+      if (filterTo      && o.dateVal > filterTo)         return false;
+      return true;
+    });
+
+    const tbody = document.getElementById('om-tbody');
+    const tfoot = document.getElementById('om-tfoot');
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-3);font-size:13px;">No orders match the selected filters.</td></tr>`;
+      tfoot.innerHTML = '';
+      document.getElementById('om-showing').textContent = 'No orders found';
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(o => {
+      const canRefund = o.status === 'Complete';
+      const refundBtn = canRefund
+        ? `<button class="btn btn-ghost btn-xs" style="color:var(--orange);white-space:nowrap;" onclick="openRefundFromOrder('${o.id}', '${o.amount}')" aria-label="Refund order ${o.id}">Refund</button>`
+        : '';
+      return `<tr>
+        <td style="font-family:monospace;font-size:12px;color:var(--text-2);">${o.id}</td>
+        <td style="white-space:nowrap;font-size:13px;">${o.date}</td>
+        <td style="font-weight:600;font-size:13px;white-space:nowrap;">${o.student}</td>
+        <td><div class="om-items-text">${o.items}</div></td>
+        <td style="text-align:right;font-weight:600;white-space:nowrap;">$${o.amount.toFixed(2)}</td>
+        <td><span class="badge ${STATUS_CLASS[o.status] || 'badge-refunded'}">${o.status}</span></td>
+        <td>${refundBtn}</td>
+      </tr>`;
+    }).join('');
+
+    const total = filtered.reduce((sum, o) => sum + (o.status !== 'Refunded' && o.status !== 'Canceled' ? o.amount : 0), 0);
+    tfoot.innerHTML = `<tr>
+      <td colspan="3"><strong>Totals — ${filtered.length} order${filtered.length !== 1 ? 's' : ''}</strong></td>
+      <td></td>
+      <td style="text-align:right;"><strong>$${total.toFixed(2)}</strong></td>
+      <td colspan="2"></td>
+    </tr>`;
+
+    document.getElementById('om-showing').textContent =
+      filtered.length === data.orders.length
+        ? 'Showing all ' + data.orders.length + ' orders'
+        : 'Showing ' + filtered.length + ' of ' + data.orders.length + ' orders';
+  }
+
+  function openRefundFromOrders() {
+    const data = PARENT_ORDERS[_ordersParentName];
+    if (!data) return;
+    closeModal('ordersModal');
+    setTimeout(() => openRefundModal(_ordersParentName, data.email, data.balance, data.balType), 200);
+  }
+
+  function openRefundFromOrder(orderId, amount) {
+    const data = PARENT_ORDERS[_ordersParentName];
+    if (!data) return;
+    closeModal('ordersModal');
+    setTimeout(() => {
+      openRefundModal(_ordersParentName, data.email, data.balance, data.balType);
+      // Pre-fill amount and reason after modal opens
+      setTimeout(() => {
+        document.getElementById('rf-amount').value = parseFloat(amount).toFixed(2);
+        document.getElementById('rf-reason').value = 'cancel';
+        updateRefundAvailability();
+        toggleRefundNotes();
+        // Add a hint about which order
+        document.getElementById('rf-amount-hint').textContent = 'Pre-filled from order ' + orderId + '. Adjust if needed.';
+        document.getElementById('rf-amount-hint').style.color = 'var(--text-2)';
+      }, 100);
+    }, 200);
+  }
+
+  function processRefund() {
+    const amt    = parseFloat(document.getElementById('rf-amount').value) || 0;
+    const reason = document.getElementById('rf-reason').value;
+    const dest   = 'balance';
+    const notes  = document.getElementById('rf-notes').value.trim();
+
+    if (amt <= 0) {
+      alert('Please enter a valid refund amount.');
+      document.getElementById('rf-amount').focus();
+      return;
+    }
+    if (amt > _refundBalance) {
+      alert('Refund amount cannot exceed the account balance of $' + _refundBalance.toFixed(2) + '.');
+      document.getElementById('rf-amount').focus();
+      return;
+    }
+    if (!reason) {
+      alert('Please select a reason for the refund.');
+      document.getElementById('rf-reason').focus();
+      return;
+    }
+    if (reason === 'other' && !notes) {
+      alert('Please add a note explaining the reason for this refund.');
+      document.getElementById('rf-notes').focus();
+      return;
+    }
+
+    const name     = document.getElementById('rf-name').textContent;
+    const destText = dest === 'card' ? 'returned to original payment method' : 'credited to account balance';
+    const btn      = document.getElementById('rf-submit-btn');
+    btn.textContent = '✓ Refund Processed';
+    btn.style.background = 'var(--green-dk)';
+    btn.disabled = true;
+
+    setTimeout(() => {
+      btn.textContent = 'Process Refund';
+      btn.style.background = '';
+      btn.disabled = false;
+      closeModal('refundModal');
+      alert('$' + amt.toFixed(2) + ' refund for ' + name + ' has been ' + destText + '.');
+    }, 1400);
+  }
+
+  function toggleUserMenu() {
+    document.getElementById('user-dropdown').classList.toggle('open');
+  }
+  document.addEventListener('click', function(e) {
+    var menu = document.querySelector('.user-menu');
+    if (menu && !menu.contains(e.target)) {
+      document.getElementById('user-dropdown').classList.remove('open');
+    }
+  });
+
+  /* ── Mobile Nav ── */
+  function toggleMobileNav() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+    const btn = document.querySelector('.hamburger');
+    const isOpen = sidebar.classList.toggle('mobile-open');
+    overlay.classList.toggle('mobile-open', isOpen);
+    if (btn) btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  }
+  function closeMobileNav() {
+    document.querySelector('.sidebar').classList.remove('mobile-open');
+    document.querySelector('.sidebar-overlay').classList.remove('mobile-open');
+    var btn = document.querySelector('.hamburger');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  }
+  document.querySelector('.sidebar-overlay').addEventListener('click', closeMobileNav);
+</script>
+</body>
+</html>

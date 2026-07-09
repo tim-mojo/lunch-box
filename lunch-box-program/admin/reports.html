@@ -1,0 +1,2630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports — Lunch Box Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── RESET ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+
+    /* ── ADA: SKIP LINK ── */
+    .skip-link { position: absolute; top: -100%; left: 12px; background: #ec7229; color: #fff; padding: 10px 18px; font-size: 14px; font-weight: 600; border-radius: 0 0 6px 6px; text-decoration: none; z-index: 9999; transition: top 0.15s; }
+    .skip-link:focus { top: 0; }
+
+    /* ── ADA: FOCUS RING ── */
+    :focus-visible { outline: 3px solid #ec7229; outline-offset: 2px; border-radius: 3px; }
+
+    /* ── TOKENS ── */
+    :root {
+      --sidebar-w: 256px;
+      --header-h: 60px;
+      --sidebar:   #0f172a;
+      --sidebar-hover: #1e293b;
+      --sidebar-active: #1e293b;
+      --green:     #9abc10;
+      --green-dk:  #7a9c0c;
+      --green-lt:  #ecf5d0;
+      --orange:    #ec7229;
+      --orange-dk: #d4621f;
+      --orange-lt: #fff4ed;
+      --page-bg:   #f1f5f9;
+      --surface:   #ffffff;
+      --border:    #e2e8f0;
+      --text-1:    #0f172a;
+      --text-2:    #475569;
+      --text-3:    #94a3b8;
+      --red:       #dc2626;
+      --red-lt:    #fef2f2;
+      --r:         8px;
+      --r-lg:      12px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+      --shadow:    0 4px 12px rgba(0,0,0,.08);
+    }
+
+    /* ── LAYOUT ── */
+    body { font-family: 'Inter', sans-serif; background: var(--page-bg); color: var(--text-1); display: flex; min-height: 100vh; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { width: var(--sidebar-w); background: var(--sidebar); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; overflow-y: auto; }
+    .sidebar-brand { padding: 20px 16px 16px; border-bottom: 1px solid rgba(255,255,255,.07); }
+    .sidebar-brand-box { display: inline-block; }
+    .sidebar-brand-box img { height: 40px; width: auto; display: block; }
+    .sidebar-nav { flex: 1; padding: 16px 10px; }
+    .nav-group { margin-bottom: 20px; }
+    .nav-group-label { font-size: 10px; font-weight: 700; color: rgba(255,255,255,.3); letter-spacing: .1em; text-transform: uppercase; padding: 0 10px; margin-bottom: 6px; }
+    .nav-link { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 6px; color: rgba(255,255,255,.65); font-size: 14px; font-weight: 500; text-decoration: none; position: relative; transition: background .12s, color .12s; margin-bottom: 5px; }
+    .nav-link svg { width: 18px; height: 18px; flex-shrink: 0; stroke-width: 1.75; }
+    .nav-link:hover { background: var(--sidebar-hover); color: #fff; }
+    .nav-link.active { background: var(--sidebar-active); color: #fff; font-weight: 600; }
+    .nav-link.active::before { content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; background: var(--green); border-radius: 0 3px 3px 0; }
+    .nav-badge { margin-left: auto; background: var(--orange); color: #fff; font-size: 11px; font-weight: 700; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; display: flex; align-items: center; justify-content: center; }
+    .sidebar-footer { padding: 12px 10px; border-top: 1px solid rgba(255,255,255,.07); display: flex; flex-direction: column; gap: 2px; }
+
+    /* ── MAIN ── */
+    .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* ── TOPBAR ── */
+    .topbar { height: var(--header-h); background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 28px; position: sticky; top: 0; z-index: 50; flex-shrink: 0; }
+    .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-2); }
+    .breadcrumb a { color: var(--text-2); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--text-1); }
+    .breadcrumb-sep { color: var(--text-3); font-size: 16px; }
+    .breadcrumb-current { color: var(--text-1); font-weight: 600; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    .search-box { display: flex; align-items: center; gap: 8px; height: 36px; background: var(--page-bg); border: 1px solid var(--border); border-radius: var(--r); padding: 0 12px; transition: border-color .15s; }
+    .search-box:focus-within { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(236,114,41,.12); }
+    .search-box svg { width: 15px; height: 15px; color: var(--text-3); flex-shrink: 0; }
+    .search-box input { border: none; background: none; font-size: 13px; color: var(--text-1); font-family: 'Inter', sans-serif; outline: none; width: 180px; }
+    .search-box input::placeholder { color: var(--text-3); }
+    .icon-btn { width: 36px; height: 36px; border-radius: var(--r); border: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-2); position: relative; transition: background .12s; }
+    .icon-btn:hover { background: var(--page-bg); }
+    .icon-btn svg { width: 18px; height: 18px; }
+    .badge-dot { position: absolute; top: -3px; right: -3px; width: 16px; height: 16px; background: var(--orange); border-radius: 50%; font-size: 9px; font-weight: 700; color: #fff; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; }
+    .user-chip { display: flex; align-items: center; gap: 8px; padding: 5px 10px; border-radius: var(--r); border: 1px solid var(--border); cursor: pointer; font-size: 13px; font-weight: 500; background: var(--surface); transition: background .12s; }
+    .user-chip:hover { background: var(--page-bg); }
+    .user-menu{position:relative;}
+    .user-dropdown{display:none;position:absolute;top:calc(100% + 6px);right:0;min-width:160px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 8px 24px rgba(15,23,42,.12);z-index:300;overflow:hidden;padding:4px 0;}
+    .user-dropdown.open{display:block;}
+    .user-dropdown a{display:flex;align-items:center;gap:8px;padding:9px 14px;font-size:13px;color:var(--text-1);text-decoration:none;transition:background .12s;}
+    .user-dropdown a:hover{background:var(--page-bg);}
+    .user-dropdown-divider{height:1px;background:var(--border);margin:4px 0;}
+    input[type="checkbox"]{appearance:none;-webkit-appearance:none;width:16px;height:16px;min-width:16px;border:2px solid #cbd5e1;border-radius:4px;cursor:pointer;background:#fff;position:relative;transition:background .12s,border-color .12s;flex-shrink:0;}
+    input[type="checkbox"]:checked{background:var(--orange);border-color:var(--orange);}
+    input[type="checkbox"]:checked::after{content:'';position:absolute;left:3px;top:0px;width:5px;height:9px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg);}
+    input[type="checkbox"]:focus-visible{outline:3px solid rgba(236,114,41,.4);outline-offset:2px;}
+    .avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--orange); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+    /* ── PAGE CONTENT ── */
+    .content { padding: 28px 28px 40px; flex: 1; }
+    .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+    .page-title { font-size: 22px; font-weight: 700; color: var(--text-1); }
+    .page-desc { font-size: 13px; color: var(--text-2); margin-top: 3px; }
+
+    /* ── BUTTONS ── */
+    .btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: var(--r); font-size: 14px; font-weight: 600; font-family: 'Inter', sans-serif; cursor: pointer; border: 1px solid transparent; transition: background .12s, border-color .12s; text-decoration: none; line-height: 1.4; }
+    .btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+    .btn-primary { background: var(--orange); color: #fff; border-color: var(--orange); }
+    .btn-primary:hover { background: var(--orange-dk); border-color: var(--orange-dk); }
+    .btn-secondary { background: var(--surface); color: var(--text-1); border-color: var(--border); }
+    .btn-secondary:hover { background: var(--page-bg); }
+    .btn-success { background: var(--green); color: #1a2500; border-color: var(--green); }
+    .btn-success:hover { background: var(--green-dk); border-color: var(--green-dk); }
+    .btn-danger { background: var(--red); color: #fff; border-color: var(--red); }
+    .btn-sm { padding: 5px 11px; font-size: 13px; }
+
+    /* ── TABS ── */
+    .tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 24px; gap: 0; overflow-x: auto; }
+    .tab-btn { padding: 10px 20px; font-size: 14px; font-weight: 500; color: var(--text-2); background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-family: 'Inter', sans-serif; transition: all .15s; white-space: nowrap; }
+    .tab-btn:hover { color: var(--text-1); }
+    .tab-btn.active { color: var(--orange); border-bottom-color: var(--orange); font-weight: 600; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── CARDS ── */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); overflow: hidden; }
+    .card-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
+    .card-title { font-size: 15px; font-weight: 600; color: var(--text-1); }
+    .card-meta { font-size: 13px; color: var(--text-2); }
+    .card-actions { display: flex; align-items: center; gap: 8px; }
+
+    /* ── TABLE ── */
+    .tbl-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th { font-size: 11px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: .06em; padding: 10px 16px; text-align: left; background: var(--page-bg); border-bottom: 1px solid var(--border); white-space: nowrap; }
+    tbody td { font-size: 14px; color: var(--text-1); padding: 13px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: #f8fafc; }
+    .td-mono { font-family: 'Inter', monospace; font-size: 13px; color: var(--text-2); }
+    .td-strong { font-weight: 600; }
+    .td-right { text-align: right; }
+    tfoot td { font-size: 14px; color: var(--text-1); padding: 13px 16px; vertical-align: middle; }
+
+    /* ── BADGES ── */
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .badge-green  { background: var(--green-lt);  color: #3a5a00; }
+    .badge-green::before  { background: var(--green-dk); }
+    .badge-orange { background: var(--orange-lt); color: #9a3412; }
+    .badge-orange::before { background: var(--orange); }
+    .badge-gray   { background: var(--page-bg);   color: var(--text-2); }
+    .badge-gray::before   { background: var(--text-3); }
+    .badge-red    { background: var(--red-lt);    color: var(--red); }
+    .badge-red::before    { background: var(--red); }
+
+    /* ── PAGINATION ── */
+    .pagination { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-2); }
+    .page-btns { display: flex; gap: 4px; }
+    .page-btn { min-width: 30px; height: 30px; padding: 0 6px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); font-size: 13px; font-weight: 500; color: var(--text-2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: 'Inter', sans-serif; }
+    .page-btn.active { background: var(--orange); color: #fff; border-color: var(--orange); }
+    .page-btn:hover:not(.active):not(:disabled) { background: var(--page-bg); }
+    .page-btn:disabled { opacity: .4; cursor: default; }
+
+    /* ── FORM CONTROLS ── */
+    .filter-select { height: 36px; border: 1px solid var(--border); border-radius: var(--r); padding: 0 10px; font-size: 13px; font-family: 'Inter', sans-serif; color: var(--text-1); background: var(--surface); cursor: pointer; outline: none; }
+    .filter-select:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(236,114,41,.12); }
+    .filter-input { height: 36px; border: 1px solid var(--border); border-radius: var(--r); padding: 0 12px; font-size: 13px; font-family: 'Inter', sans-serif; color: var(--text-1); background: var(--surface); outline: none; }
+    .filter-input:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(236,114,41,.12); }
+    .search-field { display: flex; align-items: center; gap: 8px; height: 36px; border: 1px solid var(--border); border-radius: var(--r); padding: 0 12px; background: var(--surface); transition: border-color .15s; }
+    .search-field:focus-within { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(236,114,41,.12); }
+    .search-field svg { width: 15px; height: 15px; color: var(--text-3); flex-shrink: 0; }
+    .search-field input { border: none; background: none; font-size: 13px; font-family: 'Inter', sans-serif; color: var(--text-1); outline: none; width: 200px; }
+    .search-field input::placeholder { color: var(--text-3); }
+
+    /* ── REPORTS-SPECIFIC ── */
+    .filter-bar { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--border); background: var(--page-bg); flex-wrap: wrap; }
+    .filter-bar .filter-label { font-size: 13px; font-weight: 600; color: var(--text-2); }
+    .tbl-foot td { font-weight: 700; background: var(--page-bg); border-top: 2px solid var(--border); }
+    .print-btn { margin-left: auto; }
+
+    /* ── MODAL OVERLAY ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.45); display: flex; align-items: center; justify-content: center; z-index: 400; padding: 20px; opacity: 0; pointer-events: none; transition: opacity .18s; }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal-box { background: var(--surface); border-radius: var(--r-lg); box-shadow: 0 20px 60px rgba(0,0,0,.22); width: 100%; max-width: 860px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; }
+    .modal-hdr { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .modal-title { font-size: 16px; font-weight: 700; color: var(--text-1); }
+    .modal-sub { font-size: 13px; color: var(--text-2); margin-top: 2px; }
+    .modal-close { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); background: none; cursor: pointer; font-size: 18px; color: var(--text-2); display: flex; align-items: center; justify-content: center; line-height: 1; transition: background .12s; }
+    .modal-close:hover { background: var(--page-bg); }
+    .modal-body { display: flex; flex: 1; overflow: hidden; }
+    .modal-left  { width: 300px; flex-shrink: 0; border-right: 1px solid var(--border); padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+    .modal-right { flex: 1; padding: 20px; overflow-y: auto; background: var(--page-bg); }
+    .modal-ftr { display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid var(--border); flex-shrink: 0; }
+
+    /* school radio cards */
+    .email-school-card { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border: 2px solid var(--border); border-radius: var(--r); cursor: pointer; transition: border-color .15s, background .15s; }
+    .email-school-card:has(input:checked) { border-color: var(--orange); background: var(--orange-lt); }
+    .email-school-card input[type=radio],
+    .email-school-card input[type=checkbox] { margin-top: 2px; accent-color: var(--orange); flex-shrink: 0; }
+    .esc-name { font-size: 14px; font-weight: 600; color: var(--text-1); }
+    .esc-email { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+    .esc-count { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+
+    /* field group */
+    .field-group { display: flex; flex-direction: column; gap: 6px; }
+    .field-label { font-size: 13px; font-weight: 600; color: var(--text-2); }
+    .field-row { display: flex; align-items: center; gap: 8px; }
+    .field-row .filter-input { flex: 1; }
+    .modal-textarea { width: 100%; height: 80px; border: 1px solid var(--border); border-radius: var(--r); padding: 8px 12px; font-size: 13px; font-family: 'Inter', sans-serif; color: var(--text-1); resize: vertical; outline: none; }
+    .modal-textarea:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(236,114,41,.12); }
+
+    /* email preview */
+    .email-preview { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; }
+    .ep-chrome { background: #e8ecf0; padding: 8px 14px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+    .ep-field { font-size: 12px; color: var(--text-2); display: flex; gap: 6px; }
+    .ep-field-lbl { font-weight: 600; color: var(--text-1); min-width: 40px; }
+    .ep-body { padding: 18px 20px; font-size: 13px; color: var(--text-1); line-height: 1.6; outline: none; }
+    .ep-body[contenteditable="true"] { cursor: text; }
+    .ep-body[contenteditable="true"]:hover { background: #fafbfc; }
+    .ep-body[contenteditable="true"]:focus { background: #fafbfc; box-shadow: inset 0 0 0 2px var(--orange); border-radius: 0 0 var(--r) var(--r); }
+    .ep-edit-hint { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-3); padding: 4px 20px 0; }
+    .ep-heading { font-size: 15px; font-weight: 700; margin-bottom: 14px; }
+    .ep-section { margin-bottom: 18px; }
+    .ep-section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+    .ep-order { padding: 8px 0; border-bottom: 1px solid var(--border); display: flex; gap: 12px; }
+    .ep-order:last-child { border-bottom: none; }
+    .ep-student { font-weight: 600; min-width: 130px; font-size: 13px; }
+    .ep-items { font-size: 12px; color: var(--text-2); }
+    .ep-footer { font-size: 11px; color: var(--text-3); border-top: 1px solid var(--border); padding: 10px 20px; }
+    .ep-placeholder { text-align: center; padding: 40px 20px; color: var(--text-3); font-size: 13px; }
+
+    /* send confirmation */
+    .send-confirm { text-align: center; padding: 40px 20px; }
+    .send-confirm-icon { width: 52px; height: 52px; background: var(--green-lt); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+    .send-confirm-icon svg { width: 26px; height: 26px; color: var(--green-dk); }
+    .send-confirm-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .send-confirm-sub { font-size: 13px; color: var(--text-2); }
+
+    /* ── Email Food Modal — attachment chip ── */
+    .ef-attachment-chip { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; background: var(--page-bg); border: 1px solid var(--border); border-radius: 20px; font-size: 12px; font-weight: 500; color: var(--text-2); }
+
+    /* ── PRINT ── */
+    @media print {
+      /* Hide non-essential chrome */
+      .sidebar, .topbar, .tabs, .filter-bar, .pagination, .page-header, .card-actions { display: none !important; }
+      body { filter: none !important; background: #fff; }
+      .main { margin-left: 0; }
+      .content { padding: 0; }
+
+      /* PRINT LABELS: 10-up (2 columns × 5 rows) Avery 5163 / 8163 style */
+      #tab-labels .tbl-wrap { display: none; }
+      #tab-labels::before {
+        content: 'Print to Avery 5163 or equivalent 2-column shipping label sheet (2" × 4" per label).';
+        display: block; font-size: 10px; color: #666; margin-bottom: 8px;
+      }
+      #tab-labels .card {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        border: none;
+        box-shadow: none;
+      }
+      /* Order Summary: hide financial columns when printing */
+      #tab-orders tfoot,
+      #tab-orders th:nth-child(6),
+      #tab-orders td:nth-child(6) { display: none !important; }
+
+      /* Food Report: hide revenue columns when printing */
+      #tab-food tfoot,
+      #tab-food th:nth-child(5),
+      #tab-food td:nth-child(5),
+      #tab-food th:nth-child(6),
+      #tab-food td:nth-child(6) { display: none !important; }
+
+      /* General table print */
+      table { page-break-inside: auto; }
+      tr { page-break-inside: avoid; }
+      .card { border: none; box-shadow: none; overflow: visible; }
+      .card-head { border-bottom: 1px solid #ccc; }
+    }
+
+  
+    /* ── MOBILE HAMBURGER ── */
+    .hamburger{display:none;width:36px;height:36px;border:none;background:none;cursor:pointer;color:var(--text-1);align-items:center;justify-content:center;flex-shrink:0;border-radius:var(--r);padding:0;}
+    .hamburger:hover{background:var(--page-bg);}
+    .search-btn-mobile{display:none;width:36px;height:36px;border:none;background:none;cursor:pointer;color:var(--text-2);align-items:center;justify-content:center;flex-shrink:0;border-radius:var(--r);padding:0;}
+    .search-btn-mobile:hover{background:var(--page-bg);}
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:99;}
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:900px){
+      body{overflow-x:hidden;}
+      .main{min-width:0;}
+      .card-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+      .card-actions .btn{justify-content:center;}
+      .sidebar{transform:translateX(-100%);transition:transform .25s ease;z-index:100;}
+      .sidebar.mobile-open{transform:translateX(0);}
+      .sidebar-overlay.mobile-open{display:block;}
+      .main{margin-left:0!important;}
+      .hamburger{display:flex;}
+      .topbar{padding:0 14px;}
+      .content{padding:16px 14px 32px;}
+      .stats-grid{grid-template-columns:1fr!important;}
+      .grid-2{grid-template-columns:1fr!important;}
+      .page-header{flex-direction:column;gap:12px;align-items:flex-start;}
+      .page-header>div:last-child{align-self:flex-start;}
+      .search-box input{width:120px;}
+      .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+      .modal-overlay > div, .modal-overlay > .modal{max-width:calc(100vw - 32px)!important;width:100%!important;margin:0 16px;}
+      .modal{max-width:calc(100vw - 32px)!important;}
+      /* ── STACKED TABLE CARDS ── */
+      .tbl-wrap table{min-width:0;}
+      .tbl-wrap thead{display:none;}
+      .tbl-wrap tr{display:block;border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;padding:4px 0;background:var(--surface);}
+      .tbl-wrap td{display:flex;justify-content:space-between;align-items:flex-start;border:none!important;background:transparent!important;padding:5px 12px;font-size:13px;gap:8px;border-bottom:1px solid var(--page-bg)!important;}
+      .tbl-wrap tr td:last-child{border-bottom:none!important;}
+      .tbl-wrap td::before{content:attr(data-label);font-weight:600;font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.03em;flex-shrink:0;min-width:95px;padding-top:2px;}
+      .tbl-wrap td[data-label=""]{display:none;}
+      .tbl-wrap tr.expand-row,.tbl-wrap tr.school-expand-row{display:none;}
+      .tbl-wrap tfoot tr{display:block;border-top:2px solid var(--border);padding:8px 12px;font-weight:700;}
+      .tbl-wrap tfoot td{border-bottom:none!important;background:transparent!important;}
+    }
+    @media(max-width:520px){
+      .search-box{display:none;}
+      .search-btn-mobile{display:flex;}
+      .topbar-left{display:flex;align-items:center;gap:12px;min-width:0;}
+    .topbar-right{gap:6px;}
+      .stats-grid{grid-template-columns:1fr!important;}
+      .card-head{flex-direction:column;align-items:flex-start;gap:8px;}
+    }
+  </style>
+</head>
+<body>
+
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
+<!-- ── SIDEBAR ── -->
+<div class="sidebar-overlay"></div>
+
+<aside class="sidebar" role="navigation" aria-label="Admin navigation">
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-box">
+      <img src="lunchbox-logo-horiz.png" alt="Lunch Box Program" width="148">
+    </div>
+  </div>
+
+  <nav class="sidebar-nav" aria-label="Primary">
+    <div class="nav-group">
+      <div class="nav-group-label" aria-hidden="true">Main</div>
+      <a href="index.html" class="nav-link">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a href="meals-menus.html" class="nav-link">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Meals &amp; Menus
+      </a>
+      <a href="food-schedule.html" class="nav-link">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path stroke-linecap="round" d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Food Schedule
+      </a>
+      <a href="schools.html" class="nav-link">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21V9l9-6 9 6v12M9 21V12h6v9"/></svg>
+        Schools &amp; Teachers
+      </a>
+      <a href="parents.html" class="nav-link">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m4-4a4 4 0 100-8 4 4 0 000 8z"/></svg>
+        Parents &amp; Students
+        
+      </a>
+      <a href="reports.html" class="nav-link active" aria-current="page">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        Reports
+      </a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-label" aria-hidden="true">System</div>
+      <a href="settings.html" class="nav-link">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+        Settings
+      </a>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <a href="#" class="nav-link">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h5a2 2 0 012 2v1"/></svg>
+      Log Out
+    </a>
+  </div>
+</aside>
+
+<!-- ── MAIN ── -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <header class="topbar" role="banner">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleMobileNav()" aria-label="Open navigation" aria-expanded="false"><svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="index.html">Dashboard</a>
+      <span class="breadcrumb-sep" aria-hidden="true">›</span>
+      <span class="breadcrumb-current" aria-current="page">Reports</span>
+    </nav>
+    </div>
+    <div class="topbar-right">
+      <div class="search-box" role="search">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+        <input type="search" placeholder="Search…" aria-label="Search admin">
+      </div>
+      <button class="search-btn-mobile" aria-label="Search" onclick="var sb=this.closest('header').querySelector('.search-box');sb.style.display='flex';sb.querySelector('input').focus();this.style.display='none';"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/></svg></button>
+      <div class="user-menu">
+        <div class="user-chip" role="button" aria-label="Admin user menu" tabindex="0" onclick="toggleUserMenu()" onkeydown="if(event.key==='Enter'||event.key===' ')toggleUserMenu()">
+          <div class="avatar" aria-hidden="true">AD</div>
+          <span>Admin</span>
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px;color:#94a3b8;" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </div>
+        <div class="user-dropdown" id="user-dropdown">
+
+          <a href="#"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h5a2 2 0 012 2v1"/></svg>Log Out</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENT -->
+  <main id="main-content" class="content" role="main">
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Reports</h1>
+        <p class="page-desc">Print labels, review orders, analyze revenue, and track balances.</p>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs" role="tablist" aria-label="Report types">
+      <button class="tab-btn active" role="tab" aria-selected="true"  aria-controls="tab-labels"   id="btn-labels"   tabindex="0"  onclick="switchTab('labels')">Print Labels</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="tab-orders"   id="btn-orders"   tabindex="-1" onclick="switchTab('orders')">Order Summary</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="tab-meals"    id="btn-meals"    tabindex="-1" onclick="switchTab('meals')">Meal Count</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="tab-food"     id="btn-food"     tabindex="-1" onclick="switchTab('food')">Food Reports</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="tab-revenue"  id="btn-revenue"  tabindex="-1" onclick="switchTab('revenue')">Revenue</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="tab-commis"   id="btn-commis"   tabindex="-1" onclick="switchTab('commis')">Commissions</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="tab-balance"  id="btn-balance"  tabindex="-1" onclick="switchTab('balance')">Balance Report</button>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         TAB 1 — PRINT LABELS
+    ════════════════════════════════════════════════════════ -->
+    <div id="tab-labels" class="tab-panel active" role="tabpanel" aria-labelledby="btn-labels">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Print Labels</div>
+            <div class="card-meta">Delivery labels for selected date &amp; school &nbsp;·&nbsp; Formatted for 10-up (2×5) label sheets</div>
+          </div>
+          <div class="card-actions">
+            <button class="btn btn-secondary btn-sm print-btn" onclick="printLabels()">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm1-4h4v4H10v-4z"/></svg>
+              Print Labels
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-bar" role="search" aria-label="Filter labels">
+          <span class="filter-label" id="lbl-school-label">School</span>
+          <select class="filter-select" aria-labelledby="lbl-school-label">
+            <option value="">All Schools</option>
+            <option>MDIS &amp; CMMS Elkridge</option>
+            <option>Trinity School</option>
+          </select>
+          <span class="filter-label">From</span>
+          <input type="date" class="filter-input" value="2026-06-05" aria-label="Start date">
+          <span class="filter-label">To</span>
+          <input type="date" class="filter-input" value="2026-06-05" aria-label="End date">
+          <button class="btn btn-secondary btn-sm">Apply</button>
+        </div>
+
+        <div class="tbl-wrap">
+          <table aria-label="Label data">
+            <thead>
+              <tr>
+                <th scope="col">Order #</th>
+                <th scope="col">Student Name</th>
+                <th scope="col">School</th>
+                <th scope="col">Teacher</th>
+                <th scope="col">Delivery Date</th>
+                <th scope="col">Items</th>
+                <th scope="col">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="td-mono" data-label="Order #">#2210</td><td class="td-strong" data-label="Student Name">Aliana Homes</td><td data-label="School">MDIS &amp; CMMS Elkridge</td><td data-label="Teacher">CMMS Pioneers</td><td data-label="Delivery Date">June 5, 2026</td><td data-label="Items">June Dessert, Grilled Cheese Combo with Soup of Week</td><td data-label="Notes">—</td></tr>
+              <tr><td class="td-mono" data-label="Order #">#2209</td><td class="td-strong" data-label="Student Name">Bodhi Bearss</td><td data-label="School">MDIS &amp; CMMS Elkridge</td><td data-label="Teacher">CMMS Shining Stars</td><td data-label="Delivery Date">June 5, 2026</td><td data-label="Items">Pizza Bagel (Cookie, Pizza Bagel *VG*, Veggie of the Day)</td><td data-label="Notes">—</td></tr>
+              <tr><td class="td-mono" data-label="Order #">#2208</td><td class="td-strong" data-label="Student Name">Ma'isah Jeroro</td><td data-label="School">MDIS &amp; CMMS Elkridge</td><td data-label="Teacher">1st Grade</td><td data-label="Delivery Date">June 5, 2026</td><td data-label="Items">Pizza Bagel (Cookie, Pizza Bagel *VG*, Veggie of the Day), Drinks: 100% Apple Juice</td><td data-label="Notes">—</td></tr>
+              <tr><td class="td-mono" data-label="Order #">#2207</td><td class="td-strong" data-label="Student Name">Asher Aje</td><td data-label="School">MDIS &amp; CMMS Elkridge</td><td data-label="Teacher">2nd Grade</td><td data-label="Delivery Date">June 5, 2026</td><td data-label="Items">Tenders &amp; Tots (3 Chicken Tenders with Tater Tots), Side: String Cheese ×2</td><td data-label="Notes">—</td></tr>
+              <tr><td class="td-mono" data-label="Order #">#2206</td><td class="td-strong" data-label="Student Name">Marcus Lee</td><td data-label="School">MDIS &amp; CMMS Elkridge</td><td data-label="Teacher">3rd Grade</td><td data-label="Delivery Date">June 5, 2026</td><td data-label="Items">BBQ Rib Sandwich (Boneless, Curly Fries, Vegetable of the Day), Dessert: Brownie</td><td data-label="Notes">—</td></tr>
+              <tr><td class="td-mono" data-label="Order #">#2205</td><td class="td-strong" data-label="Student Name">Priya Nair</td><td data-label="School">MDIS &amp; CMMS Elkridge</td><td data-label="Teacher">3rd Grade</td><td data-label="Delivery Date">June 5, 2026</td><td data-label="Items">BBQ Rib Sandwich (Boneless, Curly Fries, Vegetable of the Day), Dessert: Large Chocolate Chip Cookie</td><td data-label="Notes">—</td></tr>
+              <tr><td class="td-mono" data-label="Order #">#2204</td><td class="td-strong" data-label="Student Name">Emma Wilson</td><td data-label="School">Trinity School</td><td data-label="Teacher">K Bluebirds</td><td data-label="Delivery Date">June 5, 2026</td><td data-label="Items">Chicken Tenders (3), Dessert: Brownie, Fruit: Whole Apple</td><td data-label="Notes">—</td></tr>
+              <tr><td class="td-mono" data-label="Order #">#2203</td><td class="td-strong" data-label="Student Name">James Park</td><td data-label="School">Trinity School</td><td data-label="Teacher">K Bluebirds</td><td data-label="Delivery Date">June 5, 2026</td><td data-label="Items">Grilled Cheese Combo with Soup of Week, Side: String Cheese, Drinks: Bottled Water</td><td data-label="Notes">—</td></tr>
+              <tr><td class="td-mono" data-label="Order #">#2202</td><td class="td-strong" data-label="Student Name">Sofia Rodriguez</td><td data-label="School">Trinity School</td><td data-label="Teacher">2nd Grade</td><td data-label="Delivery Date">June 5, 2026</td><td data-label="Items">Tenders &amp; Tots (3 Chicken Tenders with Tater Tots), Dessert: Cake of the Week, Fruit: Whole Apple</td><td data-label="Notes">—</td></tr>
+              <tr><td class="td-mono" data-label="Order #">#2201</td><td class="td-strong" data-label="Student Name">Lucas Martin</td><td data-label="School">Trinity School</td><td data-label="Teacher">2nd Grade</td><td data-label="Delivery Date">June 5, 2026</td><td data-label="Items">Grilled Cheese Combo with Soup of Week, Side: Plain Utz Chips, Drinks: 100% Apple Juice</td><td data-label="Notes">—</td></tr>
+              <tr><td class="td-mono" data-label="Order #">#2200</td><td class="td-strong" data-label="Student Name">Ava Chen</td><td data-label="School">Trinity School</td><td data-label="Teacher">3rd Grade</td><td data-label="Delivery Date">June 5, 2026</td><td data-label="Items">Tenders &amp; Tots (3 Chicken Tenders with Tater Tots), Dessert: Large Chocolate Chip Cookie, Fruit: Banana</td><td data-label="Notes">—</td></tr>
+              <tr><td class="td-mono" data-label="Order #">#2199</td><td class="td-strong" data-label="Student Name">Noah Patel</td><td data-label="School">Trinity School</td><td data-label="Teacher">4th Grade</td><td data-label="Delivery Date">June 5, 2026</td><td data-label="Items">Tenders &amp; Tots (3 Chicken Tenders with Tater Tots), Oh Snap! Dilly Pickles Bites, Drink: Small Gatorade (12oz)</td><td data-label="Notes">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pagination" aria-label="Pagination">
+          <span>Showing 1–12 of 12 labels</span>
+          <nav class="page-btns" aria-label="Page navigation">
+            <button class="page-btn" disabled aria-label="Previous page">‹</button>
+            <button class="page-btn active" aria-current="page" aria-label="Page 1">1</button>
+            <button class="page-btn" aria-label="Page 2">2</button>
+            <button class="page-btn" aria-label="Page 3">3</button>
+            <span style="padding:0 4px;color:var(--text-3);">…</span>
+            <button class="page-btn" aria-label="Page 13">13</button>
+            <button class="page-btn" aria-label="Next page">›</button>
+          </nav>
+        </div>
+      </div>
+    </div><!-- /tab-labels -->
+
+    <!-- ════════════════════════════════════════════════════════
+         TAB 2 — ORDER SUMMARY
+    ════════════════════════════════════════════════════════ -->
+    <div id="tab-orders" class="tab-panel" role="tabpanel" aria-labelledby="btn-orders">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Order Summary</div>
+            <div class="card-meta">All orders for the selected period</div>
+          </div>
+          <div class="card-actions">
+            <button class="btn btn-secondary btn-sm" onclick="openEmailModal()">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              Email to School Admins
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="printDeliverySheets()">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm1-4h4v4H10v-4z"/></svg>
+              Print Delivery Sheets
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="printFoodSummary()">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+              Print Food Summary
+            </button>
+            <button class="btn btn-primary btn-sm">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              Export
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-bar" role="search" aria-label="Filter orders">
+          <span class="filter-label">From</span>
+          <input type="date" class="filter-input" value="2026-06-05" aria-label="Start date">
+          <span class="filter-label">To</span>
+          <input type="date" class="filter-input" value="2026-06-05" aria-label="End date">
+          <span class="filter-label">School</span>
+          <select class="filter-select" aria-label="Filter by school">
+            <option value="">All Schools</option>
+            <option>MDIS &amp; CMMS Elkridge</option>
+            <option>Trinity School</option>
+          </select>
+          <span class="filter-label">Status</span>
+          <select class="filter-select" aria-label="Filter by status">
+            <option value="">All Statuses</option>
+            <option>Complete</option>
+            <option>Canceled</option>
+            <option>Refunded</option>
+          </select>
+          <button class="btn btn-secondary btn-sm">Apply</button>
+        </div>
+
+        <div class="tbl-wrap">
+          <table aria-label="Order summary">
+            <thead>
+              <tr>
+                <th scope="col">Order #</th>
+                <th scope="col">School</th>
+                <th scope="col">Teacher</th>
+                <th scope="col">Student</th>
+                <th scope="col">Food Items</th>
+                <th scope="col" class="td-right">Amount</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="td-mono" data-label="Order #">#2210</td>
+                <td data-label="School">MDIS &amp; CMMS Elkridge</td>
+                <td data-label="Teacher">1st Grade</td>
+                <td class="td-strong" data-label="Student">Ma'isah Jeroro</td>
+                <td data-label="Food Items"><small>1 - Cookie, 1 - Pizza Bagel <em>VG</em>, 1 - Veggie of the Day, 1 - Apple Juice</small></td>
+                <td class="td-right" data-label="Amount">$12.50</td>
+                <td data-label="Status"><span class="badge badge-green">Complete</span></td>
+              </tr>
+              <tr>
+                <td class="td-mono" data-label="Order #">#2209</td>
+                <td data-label="School">MDIS &amp; CMMS Elkridge</td>
+                <td data-label="Teacher">2nd Grade</td>
+                <td class="td-strong" data-label="Student">Asher Aje</td>
+                <td data-label="Food Items"><small>2 - Side: String Cheese, 1 - Tenders &amp; Tots</small></td>
+                <td class="td-right" data-label="Amount">$10.00</td>
+                <td data-label="Status"><span class="badge badge-green">Complete</span></td>
+              </tr>
+              <tr>
+                <td class="td-mono" data-label="Order #">#2208</td>
+                <td data-label="School">MDIS &amp; CMMS Elkridge</td>
+                <td data-label="Teacher">2nd Grade</td>
+                <td class="td-strong" data-label="Student">Mamello Nyathi</td>
+                <td data-label="Food Items"><small>1 - Dessert: Choc Chip Cookie, 1 - Sun Butter &amp; Jelly on Wheat</small></td>
+                <td class="td-right" data-label="Amount">$8.50</td>
+                <td data-label="Status"><span class="badge badge-green">Complete</span></td>
+              </tr>
+              <tr>
+                <td class="td-mono" data-label="Order #">#2207</td>
+                <td data-label="School">MDIS &amp; CMMS Elkridge</td>
+                <td data-label="Teacher">4th Grade</td>
+                <td class="td-strong" data-label="Student">Eden Aje</td>
+                <td data-label="Food Items"><small>1 - Italian Sandwich on Potato Roll w/ Provolone</small></td>
+                <td class="td-right" data-label="Amount">$8.00</td>
+                <td data-label="Status"><span class="badge badge-green">Complete</span></td>
+              </tr>
+              <tr>
+                <td class="td-mono" data-label="Order #">#2206</td>
+                <td data-label="School">MDIS &amp; CMMS Elkridge</td>
+                <td data-label="Teacher">4th Grade</td>
+                <td class="td-strong" data-label="Student">Jacob Malloy</td>
+                <td data-label="Food Items"><small>1 - Chicken Tenders (3), 1 - Dessert: Brownie, 1 - Side: Plain Utz Chips</small></td>
+                <td class="td-right" data-label="Amount">$11.00</td>
+                <td data-label="Status"><span class="badge badge-green">Complete</span></td>
+              </tr>
+              <tr>
+                <td class="td-mono" data-label="Order #">#2205</td>
+                <td data-label="School">MDIS &amp; CMMS Elkridge</td>
+                <td data-label="Teacher">4th Grade</td>
+                <td class="td-strong" data-label="Student">Logan Maye</td>
+                <td data-label="Food Items"><small>1 - Boneless BBQ Rib Sandwich, 1 - Curly Fries, 1 - Vegetable of the Day, 1 - Dessert: Cake of the Week</small></td>
+                <td class="td-right" data-label="Amount">$12.50</td>
+                <td data-label="Status"><span class="badge badge-green">Complete</span></td>
+              </tr>
+              <tr>
+                <td class="td-mono" data-label="Order #">#2204</td>
+                <td data-label="School">MDIS &amp; CMMS Elkridge</td>
+                <td data-label="Teacher">4th Grade</td>
+                <td class="td-strong" data-label="Student">Mandisa Nyathi</td>
+                <td data-label="Food Items"><small>1 - Chicken Tenders (3), 1 - Dessert: Large Choc Chip Cookie</small></td>
+                <td class="td-right" data-label="Amount">$9.00</td>
+                <td data-label="Status"><span class="badge badge-green">Complete</span></td>
+              </tr>
+              <tr>
+                <td class="td-mono" data-label="Order #">#2203</td>
+                <td data-label="School">MDIS &amp; CMMS Elkridge</td>
+                <td data-label="Teacher">5th Grade</td>
+                <td class="td-strong" data-label="Student">Riley Remy</td>
+                <td data-label="Food Items"><small>1 - Chicken Tenders (3), 1 - Loaded Baked Potato (Butter &amp; Cheese) <em>GF</em></small></td>
+                <td class="td-right" data-label="Amount">$9.50</td>
+                <td data-label="Status"><span class="badge badge-green">Complete</span></td>
+              </tr>
+              <tr>
+                <td class="td-mono" data-label="Order #">#2202</td>
+                <td data-label="School">Trinity School</td>
+                <td data-label="Teacher">K Bluebirds</td>
+                <td class="td-strong" data-label="Student">Emma Wilson</td>
+                <td data-label="Food Items"><small>1 - Sun Butter &amp; Jelly on Wheat, 1 - Drinks: 100% Apple Juice</small></td>
+                <td class="td-right" data-label="Amount">$7.50</td>
+                <td data-label="Status"><span class="badge badge-green">Complete</span></td>
+              </tr>
+              <tr>
+                <td class="td-mono" data-label="Order #">#2201</td>
+                <td data-label="School">Trinity School</td>
+                <td data-label="Teacher">K Bluebirds</td>
+                <td class="td-strong" data-label="Student">James Park</td>
+                <td data-label="Food Items"><small>1 - Pizza Bagel <em>VG</em></small></td>
+                <td class="td-right" data-label="Amount">$5.50</td>
+                <td data-label="Status"><span class="badge badge-orange">Outstanding</span></td>
+              </tr>
+              <tr>
+                <td class="td-mono" data-label="Order #">#2200</td>
+                <td data-label="School">Trinity School</td>
+                <td data-label="Teacher">2nd Grade</td>
+                <td class="td-strong" data-label="Student">Sofia Rodriguez</td>
+                <td data-label="Food Items"><small>1 - Tenders &amp; Tots, 1 - Side: String Cheese</small></td>
+                <td class="td-right" data-label="Amount">$9.00</td>
+                <td data-label="Status"><span class="badge badge-green">Complete</span></td>
+              </tr>
+              <tr>
+                <td class="td-mono" data-label="Order #">#2199</td>
+                <td data-label="School">Trinity School</td>
+                <td data-label="Teacher">2nd Grade</td>
+                <td class="td-strong" data-label="Student">Lucas Martin</td>
+                <td data-label="Food Items"><small>1 - Italian Sandwich on Potato Roll, 1 - Dessert: Brownie, 1 - Side: Utz Chips</small></td>
+                <td class="td-right" data-label="Amount">$10.50</td>
+                <td data-label="Status"><span class="badge badge-green">Complete</span></td>
+              </tr>
+            </tbody>
+            <tfoot class="tbl-foot">
+              <tr>
+                <td colspan="4"><strong>Totals — 12 orders shown (12 total)</strong></td>
+                <td>29 items</td>
+                <td class="td-right">$113.50</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div class="pagination" aria-label="Pagination">
+          <span>Showing 1–12 of 12 orders</span>
+          <nav class="page-btns" aria-label="Page navigation">
+            <button class="page-btn" disabled aria-label="Previous page">‹</button>
+            <button class="page-btn active" aria-current="page" aria-label="Page 1">1</button>
+            <button class="page-btn" disabled aria-label="Next page">›</button>
+          </nav>
+        </div>
+      </div>
+    </div><!-- /tab-orders -->
+
+    <!-- ════════════════════════════════════════════════════════
+         TAB 3 — MEAL COUNT
+    ════════════════════════════════════════════════════════ -->
+    <div id="tab-meals" class="tab-panel" role="tabpanel" aria-labelledby="btn-meals">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Meal Count</div>
+            <div class="card-meta">Orders vs. meals served with variance tracking</div>
+          </div>
+          <div class="card-actions">
+            <button class="btn btn-secondary btn-sm" onclick="printMealCount(false)">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm1-4h4v4H10v-4z"/></svg>
+              Print
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="printMealCount(true)">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M10 13h4m-2-2v4"/></svg>
+              PDF
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-bar" role="search" aria-label="Filter meal counts">
+          <span class="filter-label">From</span>
+          <input type="date" class="filter-input" value="2026-05-06" aria-label="Start date">
+          <span class="filter-label">To</span>
+          <input type="date" class="filter-input" value="2026-05-13" aria-label="End date">
+          <span class="filter-label">School</span>
+          <select class="filter-select" aria-label="Filter by school">
+            <option value="">All Schools</option>
+            <option>Cedar Park Academy</option>
+            <option>Maple Grove Elementary</option>
+            <option>Riverside Learning Center</option>
+            <option>Sunridge Primary</option>
+            <option>Valley View School</option>
+            <option>Westside Academy</option>
+          </select>
+          <button class="btn btn-secondary btn-sm">Apply</button>
+        </div>
+
+        <div class="tbl-wrap">
+          <table aria-label="Meal count by date and school">
+            <thead>
+              <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Menu</th>
+                <th scope="col">School</th>
+                <th scope="col" class="td-right">Total Ordered</th>
+                <th scope="col" class="td-right">Served</th>
+                <th scope="col" class="td-right">Variance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td data-label="Date">May 13, 2026</td><td data-label="Menu">5/13</td><td data-label="School">Cedar Park Academy</td><td class="td-right" data-label="Total Ordered">24</td><td class="td-right" data-label="Served">24</td><td class="td-right" style="color:#16a34a;font-weight:600;" data-label="Variance">0</td></tr>
+              <tr><td data-label="Date">May 13, 2026</td><td data-label="Menu">5/13</td><td data-label="School">Maple Grove Elementary</td><td class="td-right" data-label="Total Ordered">31</td><td class="td-right" data-label="Served">30</td><td class="td-right" style="color:var(--red);font-weight:600;" data-label="Variance">-1</td></tr>
+              <tr><td data-label="Date">May 13, 2026</td><td data-label="Menu">5/13</td><td data-label="School">Riverside Learning Center</td><td class="td-right" data-label="Total Ordered">18</td><td class="td-right" data-label="Served">18</td><td class="td-right" style="color:#16a34a;font-weight:600;" data-label="Variance">0</td></tr>
+              <tr><td data-label="Date">May 13, 2026</td><td data-label="Menu">5/13</td><td data-label="School">Sunridge Primary</td><td class="td-right" data-label="Total Ordered">22</td><td class="td-right" data-label="Served">23</td><td class="td-right" style="color:#2563eb;font-weight:600;" data-label="Variance">+1</td></tr>
+              <tr><td data-label="Date">May 12, 2026</td><td data-label="Menu">5/12</td><td data-label="School">Valley View School</td><td class="td-right" data-label="Total Ordered">27</td><td class="td-right" data-label="Served">27</td><td class="td-right" style="color:#16a34a;font-weight:600;" data-label="Variance">0</td></tr>
+              <tr><td data-label="Date">May 12, 2026</td><td data-label="Menu">5/12</td><td data-label="School">Westside Academy</td><td class="td-right" data-label="Total Ordered">19</td><td class="td-right" data-label="Served">18</td><td class="td-right" style="color:var(--red);font-weight:600;" data-label="Variance">-1</td></tr>
+              <tr><td data-label="Date">May 9, 2026</td><td data-label="Menu">5/9</td><td data-label="School">Cedar Park Academy</td><td class="td-right" data-label="Total Ordered">26</td><td class="td-right" data-label="Served">26</td><td class="td-right" style="color:#16a34a;font-weight:600;" data-label="Variance">0</td></tr>
+              <tr><td data-label="Date">May 9, 2026</td><td data-label="Menu">5/9</td><td data-label="School">Maple Grove Elementary</td><td class="td-right" data-label="Total Ordered">33</td><td class="td-right" data-label="Served">33</td><td class="td-right" style="color:#16a34a;font-weight:600;" data-label="Variance">0</td></tr>
+              <tr><td data-label="Date">May 9, 2026</td><td data-label="Menu">5/9</td><td data-label="School">Riverside Learning Center</td><td class="td-right" data-label="Total Ordered">20</td><td class="td-right" data-label="Served">19</td><td class="td-right" style="color:var(--red);font-weight:600;" data-label="Variance">-1</td></tr>
+              <tr><td data-label="Date">May 8, 2026</td><td data-label="Menu">5/8</td><td data-label="School">Sunridge Primary</td><td class="td-right" data-label="Total Ordered">29</td><td class="td-right" data-label="Served">29</td><td class="td-right" style="color:#16a34a;font-weight:600;" data-label="Variance">0</td></tr>
+              <tr><td data-label="Date">May 8, 2026</td><td data-label="Menu">5/8</td><td data-label="School">Valley View School</td><td class="td-right" data-label="Total Ordered">25</td><td class="td-right" data-label="Served">26</td><td class="td-right" style="color:#2563eb;font-weight:600;" data-label="Variance">+1</td></tr>
+              <tr><td data-label="Date">May 7, 2026</td><td data-label="Menu">5/7</td><td data-label="School">Westside Academy</td><td class="td-right" data-label="Total Ordered">21</td><td class="td-right" data-label="Served">21</td><td class="td-right" style="color:#16a34a;font-weight:600;" data-label="Variance">0</td></tr>
+            </tbody>
+            <tfoot class="tbl-foot">
+              <tr>
+                <td colspan="3"><strong>Column Totals</strong></td>
+                <td class="td-right"><strong>295</strong></td>
+                <td class="td-right"><strong>294</strong></td>
+                <td class="td-right" style="color:var(--red);font-weight:700;">-1</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div class="pagination" aria-label="Pagination">
+          <span>Showing 1–12 of 36 records</span>
+          <nav class="page-btns" aria-label="Page navigation">
+            <button class="page-btn" disabled aria-label="Previous page">‹</button>
+            <button class="page-btn active" aria-current="page" aria-label="Page 1">1</button>
+            <button class="page-btn" aria-label="Page 2">2</button>
+            <button class="page-btn" aria-label="Page 3">3</button>
+            <button class="page-btn" aria-label="Next page">›</button>
+          </nav>
+        </div>
+      </div>
+    </div><!-- /tab-meals -->
+
+    <!-- ════════════════════════════════════════════════════════
+         TAB 4 — FOOD REPORTS
+    ════════════════════════════════════════════════════════ -->
+    <div id="tab-food" class="tab-panel" role="tabpanel" aria-labelledby="btn-food">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Food Reports</div>
+            <div class="card-meta">Item popularity and revenue sorted by highest revenue</div>
+          </div>
+          <div class="card-actions">
+            <button class="btn btn-secondary btn-sm" onclick="printFoodReport()">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm1-4h4v4H10v-4z"/></svg>
+              Print
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="downloadFoodPDF()">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M10 13h4m-2-2v4"/></svg>
+              PDF
+            </button>
+
+            <button class="btn btn-primary btn-sm">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              Export
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-bar" role="search" aria-label="Filter food reports">
+          <span class="filter-label">From</span>
+          <input type="date" class="filter-input" value="2026-05-01" aria-label="Start date">
+          <span class="filter-label">To</span>
+          <input type="date" class="filter-input" value="2026-05-31" aria-label="End date">
+          <span class="filter-label">School</span>
+          <select class="filter-select" aria-label="Filter by school">
+            <option value="">All Schools</option>
+            <option>Cedar Park Academy</option>
+            <option>Maple Grove Elementary</option>
+            <option>Riverside Learning Center</option>
+            <option>Sunridge Primary</option>
+            <option>Valley View School</option>
+            <option>Westside Academy</option>
+          </select>
+          <span class="filter-label">Type</span>
+          <select class="filter-select" aria-label="Filter by type">
+            <option value="">All Types</option>
+            <option>Entree</option>
+            <option>Side</option>
+            <option>Drink</option>
+            <option>Snack</option>
+          </select>
+          <button class="btn btn-secondary btn-sm">Apply</button>
+        </div>
+
+        <div class="tbl-wrap">
+          <table aria-label="Food items by type and count">
+            <thead>
+              <tr>
+                <th scope="col">Food Type</th>
+                <th scope="col">Food Item</th>
+                <th scope="col" class="td-right">Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td data-label="Food Type"><span class="badge badge-orange">Entree</span></td><td class="td-strong" data-label="Food Item">Cheese Pizza</td><td class="td-right" data-label="Count">87</td></tr>
+              <tr><td data-label="Food Type"><span class="badge badge-orange">Entree</span></td><td class="td-strong" data-label="Food Item">Chicken Nuggets</td><td class="td-right" data-label="Count">74</td></tr>
+              <tr><td data-label="Food Type"><span class="badge badge-orange">Entree</span></td><td class="td-strong" data-label="Food Item">Mac &amp; Cheese</td><td class="td-right" data-label="Count">65</td></tr>
+              <tr><td data-label="Food Type"><span class="badge badge-orange">Entree</span></td><td class="td-strong" data-label="Food Item">Turkey Sandwich</td><td class="td-right" data-label="Count">58</td></tr>
+              <tr><td data-label="Food Type"><span class="badge badge-orange">Entree</span></td><td class="td-strong" data-label="Food Item">Beef Taco (x2)</td><td class="td-right" data-label="Count">51</td></tr>
+              <tr><td data-label="Food Type"><span class="badge badge-orange">Entree</span></td><td class="td-strong" data-label="Food Item">Grilled Cheese</td><td class="td-right" data-label="Count">49</td></tr>
+              <tr><td data-label="Food Type"><span class="badge badge-orange">Entree</span></td><td class="td-strong" data-label="Food Item">Veggie Wrap</td><td class="td-right" data-label="Count">32</td></tr>
+              <tr><td data-label="Food Type"><span class="badge badge-green">Drink</span></td><td class="td-strong" data-label="Food Item">Chocolate Milk</td><td class="td-right" data-label="Count">122</td></tr>
+              <tr><td data-label="Food Type"><span class="badge badge-green">Drink</span></td><td class="td-strong" data-label="Food Item">Apple Juice</td><td class="td-right" data-label="Count">98</td></tr>
+              <tr><td data-label="Food Type"><span class="badge badge-green">Drink</span></td><td class="td-strong" data-label="Food Item">Milk (White)</td><td class="td-right" data-label="Count">89</td></tr>
+              <tr><td data-label="Food Type"><span class="badge badge-gray">Side</span></td><td class="td-strong" data-label="Food Item">Apple Slices</td><td class="td-right" data-label="Count">77</td></tr>
+              <tr><td data-label="Food Type"><span class="badge badge-gray">Side</span></td><td class="td-strong" data-label="Food Item">Fruit Cup</td><td class="td-right" data-label="Count">66</td></tr>
+            </tbody>
+            <tfoot class="tbl-foot">
+              <tr>
+                <td colspan="2"><strong>Totals — 12 items</strong></td>
+                <td class="td-right"><strong>868</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div class="pagination" aria-label="Pagination">
+          <span>Showing 1–12 of 28 food items</span>
+          <nav class="page-btns" aria-label="Page navigation">
+            <button class="page-btn" disabled aria-label="Previous page">‹</button>
+            <button class="page-btn active" aria-current="page" aria-label="Page 1">1</button>
+            <button class="page-btn" aria-label="Page 2">2</button>
+            <button class="page-btn" aria-label="Page 3">3</button>
+            <button class="page-btn" aria-label="Next page">›</button>
+          </nav>
+        </div>
+      </div>
+    </div><!-- /tab-food -->
+
+    <!-- ════════════════════════════════════════════════════════
+         TAB 5 — REVENUE
+    ════════════════════════════════════════════════════════ -->
+    <div id="tab-revenue" class="tab-panel" role="tabpanel" aria-labelledby="btn-revenue">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Revenue Report</div>
+            <div class="card-meta">Daily revenue breakdown by school with running total</div>
+          </div>
+          <div class="card-actions">
+            <button class="btn btn-secondary btn-sm" onclick="printRevenue()">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm1-4h4v4H10v-4z"/></svg>
+              Print
+            </button>
+            <button class="btn btn-primary btn-sm">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              Export
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-bar" role="search" aria-label="Filter revenue">
+          <span class="filter-label">From</span>
+          <input type="date" class="filter-input" value="2026-05-06" aria-label="Start date">
+          <span class="filter-label">To</span>
+          <input type="date" class="filter-input" value="2026-05-13" aria-label="End date">
+          <span class="filter-label">School</span>
+          <select class="filter-select" aria-label="Filter by school">
+            <option value="">All Schools</option>
+            <option>Cedar Park Academy</option>
+            <option>Maple Grove Elementary</option>
+            <option>Riverside Learning Center</option>
+            <option>Sunridge Primary</option>
+            <option>Valley View School</option>
+            <option>Westside Academy</option>
+          </select>
+          <button class="btn btn-secondary btn-sm">Apply</button>
+        </div>
+
+        <div class="tbl-wrap">
+          <table aria-label="Revenue by date and school">
+            <thead>
+              <tr>
+                <th scope="col">Date</th>
+                <th scope="col">School</th>
+                <th scope="col" class="td-right">Orders</th>
+                <th scope="col" class="td-right">Revenue</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td data-label="Date">May 13, 2026</td><td data-label="School">Cedar Park Academy</td><td class="td-right" data-label="Orders">24</td><td class="td-right td-strong" data-label="Revenue">$252.00</td></tr>
+              <tr><td data-label="Date">May 13, 2026</td><td data-label="School">Maple Grove Elementary</td><td class="td-right" data-label="Orders">31</td><td class="td-right td-strong" data-label="Revenue">$322.25</td></tr>
+              <tr><td data-label="Date">May 13, 2026</td><td data-label="School">Riverside Learning Center</td><td class="td-right" data-label="Orders">18</td><td class="td-right td-strong" data-label="Revenue">$189.00</td></tr>
+              <tr><td data-label="Date">May 13, 2026</td><td data-label="School">Sunridge Primary</td><td class="td-right" data-label="Orders">22</td><td class="td-right td-strong" data-label="Revenue">$231.00</td></tr>
+              <tr><td data-label="Date">May 12, 2026</td><td data-label="School">Valley View School</td><td class="td-right" data-label="Orders">27</td><td class="td-right td-strong" data-label="Revenue">$283.50</td></tr>
+              <tr><td data-label="Date">May 12, 2026</td><td data-label="School">Westside Academy</td><td class="td-right" data-label="Orders">19</td><td class="td-right td-strong" data-label="Revenue">$199.50</td></tr>
+              <tr><td data-label="Date">May 9, 2026</td><td data-label="School">Cedar Park Academy</td><td class="td-right" data-label="Orders">26</td><td class="td-right td-strong" data-label="Revenue">$272.50</td></tr>
+              <tr><td data-label="Date">May 9, 2026</td><td data-label="School">Maple Grove Elementary</td><td class="td-right" data-label="Orders">33</td><td class="td-right td-strong" data-label="Revenue">$343.75</td></tr>
+              <tr><td data-label="Date">May 8, 2026</td><td data-label="School">Riverside Learning Center</td><td class="td-right" data-label="Orders">20</td><td class="td-right td-strong" data-label="Revenue">$210.00</td></tr>
+              <tr><td data-label="Date">May 8, 2026</td><td data-label="School">Sunridge Primary</td><td class="td-right" data-label="Orders">29</td><td class="td-right td-strong" data-label="Revenue">$304.50</td></tr>
+              <tr><td data-label="Date">May 7, 2026</td><td data-label="School">Valley View School</td><td class="td-right" data-label="Orders">25</td><td class="td-right td-strong" data-label="Revenue">$262.50</td></tr>
+              <tr><td data-label="Date">May 6, 2026</td><td data-label="School">Westside Academy</td><td class="td-right" data-label="Orders">21</td><td class="td-right td-strong" data-label="Revenue">$220.50</td></tr>
+            </tbody>
+            <tfoot class="tbl-foot">
+              <tr>
+                <td colspan="2"><strong>Week Total (May 6–13)</strong></td>
+                <td class="td-right"><strong>295</strong></td>
+                <td class="td-right"><strong>$3,091.00</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div class="pagination" aria-label="Pagination">
+          <span>Showing 1–12 of 42 records</span>
+          <nav class="page-btns" aria-label="Page navigation">
+            <button class="page-btn" disabled aria-label="Previous page">‹</button>
+            <button class="page-btn active" aria-current="page" aria-label="Page 1">1</button>
+            <button class="page-btn" aria-label="Page 2">2</button>
+            <button class="page-btn" aria-label="Page 3">3</button>
+            <button class="page-btn" aria-label="Page 4">4</button>
+            <button class="page-btn" aria-label="Next page">›</button>
+          </nav>
+        </div>
+      </div>
+    </div><!-- /tab-revenue -->
+
+    <!-- ════════════════════════════════════════════════════════
+         TAB 6 — COMMISSIONS
+    ════════════════════════════════════════════════════════ -->
+    <div id="tab-commis" class="tab-panel" role="tabpanel" aria-labelledby="btn-commis">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Commissions</div>
+            <div class="card-meta">School commission summary for current period</div>
+          </div>
+          <div class="card-actions">
+            <button class="btn btn-secondary btn-sm">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm1-4h4v4H10v-4z"/></svg>
+              Print
+            </button>
+            <button class="btn btn-primary btn-sm">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              Export
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-bar" role="search" aria-label="Filter commissions">
+          <span class="filter-label">From</span>
+          <input type="date" class="filter-input" value="2026-05-01" aria-label="Start date">
+          <span class="filter-label">To</span>
+          <input type="date" class="filter-input" value="2026-05-31" aria-label="End date">
+          <button class="btn btn-secondary btn-sm">Apply</button>
+        </div>
+
+        <div class="tbl-wrap">
+          <table aria-label="Commission summary by school">
+            <thead>
+              <tr>
+                <th scope="col">School</th>
+                <th scope="col" class="td-right">Orders</th>
+                <th scope="col" class="td-right">Revenue</th>
+                <th scope="col" class="td-right">Commission Rate</th>
+                <th scope="col" class="td-right">Commission Amount</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="td-strong" data-label="School">Cedar Park Academy</td>
+                <td class="td-right" data-label="Orders">218</td>
+                <td class="td-right" data-label="Revenue">$2,289.00</td>
+                <td class="td-right" data-label="Commission Rate">8%</td>
+                <td class="td-right td-strong" data-label="Commission Amount">$183.12</td>
+                <td data-label="Status"><span class="badge badge-green">Paid</span></td>
+              </tr>
+              <tr>
+                <td class="td-strong" data-label="School">Maple Grove Elementary</td>
+                <td class="td-right" data-label="Orders">276</td>
+                <td class="td-right" data-label="Revenue">$2,877.00</td>
+                <td class="td-right" data-label="Commission Rate">8%</td>
+                <td class="td-right td-strong" data-label="Commission Amount">$230.16</td>
+                <td data-label="Status"><span class="badge badge-orange">Pending</span></td>
+              </tr>
+              <tr>
+                <td class="td-strong" data-label="School">Riverside Learning Center</td>
+                <td class="td-right" data-label="Orders">164</td>
+                <td class="td-right" data-label="Revenue">$1,722.00</td>
+                <td class="td-right" data-label="Commission Rate">7.5%</td>
+                <td class="td-right td-strong" data-label="Commission Amount">$129.15</td>
+                <td data-label="Status"><span class="badge badge-green">Paid</span></td>
+              </tr>
+              <tr>
+                <td class="td-strong" data-label="School">Sunridge Primary</td>
+                <td class="td-right" data-label="Orders">198</td>
+                <td class="td-right" data-label="Revenue">$2,079.00</td>
+                <td class="td-right" data-label="Commission Rate">8%</td>
+                <td class="td-right td-strong" data-label="Commission Amount">$166.32</td>
+                <td data-label="Status"><span class="badge badge-orange">Pending</span></td>
+              </tr>
+              <tr>
+                <td class="td-strong" data-label="School">Valley View School</td>
+                <td class="td-right" data-label="Orders">241</td>
+                <td class="td-right" data-label="Revenue">$2,530.50</td>
+                <td class="td-right" data-label="Commission Rate">8%</td>
+                <td class="td-right td-strong" data-label="Commission Amount">$202.44</td>
+                <td data-label="Status"><span class="badge badge-green">Paid</span></td>
+              </tr>
+              <tr>
+                <td class="td-strong" data-label="School">Westside Academy</td>
+                <td class="td-right" data-label="Orders">187</td>
+                <td class="td-right" data-label="Revenue">$1,963.50</td>
+                <td class="td-right" data-label="Commission Rate">7.5%</td>
+                <td class="td-right td-strong" data-label="Commission Amount">$147.26</td>
+                <td data-label="Status"><span class="badge badge-gray">Processing</span></td>
+              </tr>
+            </tbody>
+            <tfoot class="tbl-foot">
+              <tr>
+                <td><strong>Totals — 6 Schools</strong></td>
+                <td class="td-right"><strong>1,284</strong></td>
+                <td class="td-right"><strong>$13,461.00</strong></td>
+                <td class="td-right">—</td>
+                <td class="td-right"><strong>$1,058.45</strong></td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div class="pagination" aria-label="Pagination">
+          <span>Showing all 6 schools</span>
+          <nav class="page-btns" aria-label="Page navigation">
+            <button class="page-btn" disabled aria-label="Previous page">‹</button>
+            <button class="page-btn active" aria-current="page" aria-label="Page 1">1</button>
+            <button class="page-btn" disabled aria-label="Next page">›</button>
+          </nav>
+        </div>
+      </div>
+    </div><!-- /tab-commis -->
+
+    <!-- ════════════════════════════════════════════════════════
+         TAB 7 — BALANCE REPORT
+    ════════════════════════════════════════════════════════ -->
+    <div id="tab-balance" class="tab-panel" role="tabpanel" aria-labelledby="btn-balance">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Balance Report</div>
+            <div class="card-meta">Outstanding balances by parent account</div>
+          </div>
+          <div class="card-actions">
+            <div class="search-field" role="search" aria-label="Search parent accounts">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+              <input type="search" placeholder="Search parent or student…" aria-label="Search parent or student name">
+            </div>
+            <select class="filter-select" aria-label="Filter by school">
+              <option value="">All Schools</option>
+              <option>Cedar Park Academy</option>
+              <option>Maple Grove Elementary</option>
+              <option>Riverside Learning Center</option>
+              <option>Sunridge Primary</option>
+              <option>Valley View School</option>
+              <option>Westside Academy</option>
+            </select>
+            <select class="filter-select" aria-label="Filter by balance status">
+              <option value="">All Balances</option>
+              <option>Credit (positive)</option>
+              <option>Balance Due (negative)</option>
+              <option>Zero Balance</option>
+            </select>
+            <button class="btn btn-primary btn-sm">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              Export
+            </button>
+          </div>
+        </div>
+
+        <div class="tbl-wrap">
+          <table aria-label="Parent balance report">
+            <thead>
+              <tr>
+                <th scope="col">Parent Name</th>
+                <th scope="col">Student(s)</th>
+                <th scope="col">School</th>
+                <th scope="col" class="td-right">Orders</th>
+                <th scope="col" class="td-right">Charges</th>
+                <th scope="col" class="td-right">Payments</th>
+                <th scope="col" class="td-right">Balance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="td-strong" data-label="Parent Name">Maria Martinez</td>
+                <td data-label="Student(s)">Sophie M.</td>
+                <td data-label="School">Cedar Park Academy</td>
+                <td class="td-right" data-label="Orders">18</td>
+                <td class="td-right" data-label="Charges">$185.50</td>
+                <td class="td-right" data-label="Payments">$200.00</td>
+                <td class="td-right" data-label="Balance"><span class="badge badge-green">+$14.50</span></td>
+              </tr>
+              <tr>
+                <td class="td-strong" data-label="Parent Name">Kevin Johnson</td>
+                <td data-label="Student(s)">Liam J.</td>
+                <td data-label="School">Cedar Park Academy</td>
+                <td class="td-right" data-label="Orders">22</td>
+                <td class="td-right" data-label="Charges">$220.00</td>
+                <td class="td-right" data-label="Payments">$200.00</td>
+                <td class="td-right" data-label="Balance"><span class="badge badge-red">-$20.00</span></td>
+              </tr>
+              <tr>
+                <td class="td-strong" data-label="Parent Name">Mei Chen</td>
+                <td data-label="Student(s)">Olivia C.</td>
+                <td data-label="School">Maple Grove Elementary</td>
+                <td class="td-right" data-label="Orders">15</td>
+                <td class="td-right" data-label="Charges">$157.50</td>
+                <td class="td-right" data-label="Payments">$157.50</td>
+                <td class="td-right" data-label="Balance"><span class="badge badge-gray">$0.00</span></td>
+              </tr>
+              <tr>
+                <td class="td-strong" data-label="Parent Name">Robert Williams</td>
+                <td data-label="Student(s)">Noah W.</td>
+                <td data-label="School">Maple Grove Elementary</td>
+                <td class="td-right" data-label="Orders">19</td>
+                <td class="td-right" data-label="Charges">$190.00</td>
+                <td class="td-right" data-label="Payments">$150.00</td>
+                <td class="td-right" data-label="Balance"><span class="badge badge-red">-$40.00</span></td>
+              </tr>
+              <tr>
+                <td class="td-strong" data-label="Parent Name">Sandra Thompson</td>
+                <td data-label="Student(s)">Ava T.</td>
+                <td data-label="School">Riverside Learning Center</td>
+                <td class="td-right" data-label="Orders">21</td>
+                <td class="td-right" data-label="Charges">$214.50</td>
+                <td class="td-right" data-label="Payments">$250.00</td>
+                <td class="td-right" data-label="Balance"><span class="badge badge-green">+$35.50</span></td>
+              </tr>
+              <tr>
+                <td class="td-strong" data-label="Parent Name">Mark Brown</td>
+                <td data-label="Student(s)">Ethan B.</td>
+                <td data-label="School">Riverside Learning Center</td>
+                <td class="td-right" data-label="Orders">17</td>
+                <td class="td-right" data-label="Charges">$170.00</td>
+                <td class="td-right" data-label="Payments">$170.00</td>
+                <td class="td-right" data-label="Balance"><span class="badge badge-gray">$0.00</span></td>
+              </tr>
+              <tr>
+                <td class="td-strong" data-label="Parent Name">Lisa Davis</td>
+                <td data-label="Student(s)">Isabella D.</td>
+                <td data-label="School">Sunridge Primary</td>
+                <td class="td-right" data-label="Orders">20</td>
+                <td class="td-right" data-label="Charges">$200.00</td>
+                <td class="td-right" data-label="Payments">$175.00</td>
+                <td class="td-right" data-label="Balance"><span class="badge badge-red">-$25.00</span></td>
+              </tr>
+              <tr>
+                <td class="td-strong" data-label="Parent Name">Tom Wilson</td>
+                <td data-label="Student(s)">Mason W., Ella W.</td>
+                <td data-label="School">Sunridge Primary</td>
+                <td class="td-right" data-label="Orders">35</td>
+                <td class="td-right" data-label="Charges">$357.50</td>
+                <td class="td-right" data-label="Payments">$400.00</td>
+                <td class="td-right" data-label="Balance"><span class="badge badge-green">+$42.50</span></td>
+              </tr>
+              <tr>
+                <td class="td-strong" data-label="Parent Name">Carla Anderson</td>
+                <td data-label="Student(s)">Mia A.</td>
+                <td data-label="School">Valley View School</td>
+                <td class="td-right" data-label="Orders">16</td>
+                <td class="td-right" data-label="Charges">$168.00</td>
+                <td class="td-right" data-label="Payments">$168.00</td>
+                <td class="td-right" data-label="Balance"><span class="badge badge-gray">$0.00</span></td>
+              </tr>
+              <tr>
+                <td class="td-strong" data-label="Parent Name">Derek Taylor</td>
+                <td data-label="Student(s)">James T.</td>
+                <td data-label="School">Valley View School</td>
+                <td class="td-right" data-label="Orders">24</td>
+                <td class="td-right" data-label="Charges">$252.00</td>
+                <td class="td-right" data-label="Payments">$220.00</td>
+                <td class="td-right" data-label="Balance"><span class="badge badge-red">-$32.00</span></td>
+              </tr>
+              <tr>
+                <td class="td-strong" data-label="Parent Name">Amy Harris</td>
+                <td data-label="Student(s)">Charlotte H.</td>
+                <td data-label="School">Westside Academy</td>
+                <td class="td-right" data-label="Orders">13</td>
+                <td class="td-right" data-label="Charges">$136.50</td>
+                <td class="td-right" data-label="Payments">$150.00</td>
+                <td class="td-right" data-label="Balance"><span class="badge badge-green">+$13.50</span></td>
+              </tr>
+              <tr>
+                <td class="td-strong" data-label="Parent Name">Paul Clark</td>
+                <td data-label="Student(s)">Benjamin C.</td>
+                <td data-label="School">Westside Academy</td>
+                <td class="td-right" data-label="Orders">18</td>
+                <td class="td-right" data-label="Charges">$183.00</td>
+                <td class="td-right" data-label="Payments">$183.00</td>
+                <td class="td-right" data-label="Balance"><span class="badge badge-gray">$0.00</span></td>
+              </tr>
+            </tbody>
+            <tfoot class="tbl-foot">
+              <tr>
+                <td colspan="3"><strong>Totals — 12 of 84 accounts shown</strong></td>
+                <td class="td-right"><strong>238</strong></td>
+                <td class="td-right"><strong>$2,434.50</strong></td>
+                <td class="td-right"><strong>$2,423.50</strong></td>
+                <td class="td-right"><strong style="color:var(--red);">-$11.00</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div class="pagination" aria-label="Pagination">
+          <span>Showing 1–12 of 84 accounts &nbsp;·&nbsp; <strong style="color:var(--red);">4 accounts with balance due</strong></span>
+          <nav class="page-btns" aria-label="Page navigation">
+            <button class="page-btn" disabled aria-label="Previous page">‹</button>
+            <button class="page-btn active" aria-current="page" aria-label="Page 1">1</button>
+            <button class="page-btn" aria-label="Page 2">2</button>
+            <button class="page-btn" aria-label="Page 3">3</button>
+            <span style="padding:0 4px;color:var(--text-3);">…</span>
+            <button class="page-btn" aria-label="Page 7">7</button>
+            <button class="page-btn" aria-label="Next page">›</button>
+          </nav>
+        </div>
+      </div>
+    </div><!-- /tab-balance -->
+
+  </main>
+</div><!-- /.main -->
+
+<!-- ════════════════════════════════════════════════════════
+     EMAIL TO SCHOOL ADMIN MODAL
+════════════════════════════════════════════════════════ -->
+<div id="emailModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="emailModalTitle" onclick="handleEmailOverlayClick(event)" style="display:none;">
+  <div class="modal-box">
+
+    <!-- Header -->
+    <div class="modal-hdr">
+      <div>
+        <div class="modal-title" id="emailModalTitle">Email to School Admin</div>
+        <div class="modal-sub">Send an order summary report for the selected school and date range</div>
+      </div>
+      <button class="modal-close" onclick="closeEmailModal()" aria-label="Close modal">×</button>
+    </div>
+
+    <!-- Body: left settings + right preview -->
+    <div class="modal-body">
+
+      <!-- LEFT: settings -->
+      <div class="modal-left">
+
+        <!-- School selection -->
+        <div class="field-group">
+          <div class="field-label">Select Schools</div>
+          <label class="email-school-card">
+            <input type="checkbox" id="emailChk-all" onchange="handleEmailAllCheck()" checked>
+            <div>
+              <div class="esc-name">All Schools</div>
+              <div class="esc-email">Sends to all school admins</div>
+              <div class="esc-count">2 schools · 12 orders</div>
+            </div>
+          </label>
+          <label class="email-school-card">
+            <input type="checkbox" id="emailChk-mdis" onchange="handleEmailIndivCheck()" checked>
+            <div>
+              <div class="esc-name">MDIS &amp; CMMS Elkridge</div>
+              <div class="esc-email">coordinator@mdiscmms.org</div>
+              <div class="esc-count">8 orders for selected period</div>
+            </div>
+          </label>
+          <label class="email-school-card">
+            <input type="checkbox" id="emailChk-trinity" onchange="handleEmailIndivCheck()" checked>
+            <div>
+              <div class="esc-name">Trinity School</div>
+              <div class="esc-email">admin@trinityschool.org</div>
+              <div class="esc-count">4 orders for selected period</div>
+            </div>
+          </label>
+        </div>
+
+        <!-- Date range -->
+        <div class="field-group">
+          <div class="field-label">Date Range</div>
+          <div class="field-row">
+            <span style="font-size:13px;color:var(--text-2);white-space:nowrap;">From</span>
+            <input type="date" class="filter-input" id="emailFrom" value="2026-06-05" onchange="updateEmailPreview()" aria-label="Email report start date">
+          </div>
+          <div class="field-row">
+            <span style="font-size:13px;color:var(--text-2);white-space:nowrap;">To</span>
+            <input type="date" class="filter-input" id="emailTo" value="2026-06-05" onchange="updateEmailPreview()" aria-label="Email report end date">
+          </div>
+        </div>
+
+        <!-- Optional note -->
+        <div class="field-group">
+          <div class="field-label">Add a Note <span style="font-weight:400;color:var(--text-3)">(optional)</span></div>
+          <textarea class="modal-textarea" id="emailNote" placeholder="e.g. Please have lunch ready by 11:30 AM…" oninput="updateEmailPreview()"></textarea>
+        </div>
+
+      </div><!-- /modal-left -->
+
+      <!-- RIGHT: email preview -->
+      <div class="modal-right">
+        <div class="field-label" style="margin-bottom:10px;">Email Preview</div>
+        <div class="email-preview" id="emailPreviewBox"></div>
+      </div>
+
+    </div><!-- /modal-body -->
+
+    <!-- Footer -->
+    <div class="modal-ftr">
+      <button class="btn btn-secondary" onclick="closeEmailModal()">Cancel</button>
+      <button class="btn btn-primary" id="emailSendBtn" onclick="sendSchoolEmail()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:15px;height:15px;" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        Send Email
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     EMAIL FOOD REPORT MODAL
+════════════════════════════════════════════════════════ -->
+<div id="emailFoodModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="emailFoodModalTitle" onclick="handleEmailFoodOverlayClick(event)" style="display:none;">
+  <div class="modal-box" style="max-width:520px;">
+
+    <!-- Header -->
+    <div class="modal-hdr">
+      <div>
+        <div class="modal-title" id="emailFoodModalTitle">Email Food Report</div>
+      </div>
+      <button class="modal-close" onclick="closeEmailFoodModal()" aria-label="Close modal">×</button>
+    </div>
+
+    <!-- Body -->
+    <div style="padding:22px 24px;display:flex;flex-direction:column;gap:18px;">
+
+      <!-- To field — standard email input -->
+      <div class="field-group" style="margin:0;">
+        <div class="field-label">To</div>
+        <input type="email" class="filter-input" id="efToEmail" placeholder="recipient@example.com" style="width:100%;font-size:13px;" multiple>
+      </div>
+
+      <!-- Attachment chip -->
+      <div class="field-group" style="margin:0;">
+        <div class="field-label">Attachment</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div class="ef-attachment-chip">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px;flex-shrink:0;" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span>FoodReport_May2026.pdf</span>
+          </div>
+          <span style="font-size:12px;color:var(--text-3);">Auto-generated · 12 items · 868 total</span>
+        </div>
+      </div>
+
+      <!-- Optional message -->
+      <div class="field-group" style="margin:0;">
+        <div class="field-label">Message <span style="font-weight:400;color:var(--text-3)">(optional)</span></div>
+        <textarea class="modal-textarea" id="efMessage" rows="3" placeholder="Add a note to accompany the report…" style="resize:vertical;"></textarea>
+      </div>
+
+    </div><!-- /body -->
+
+    <!-- Footer -->
+    <div class="modal-ftr">
+      <button class="btn btn-secondary" onclick="closeEmailFoodModal()">Cancel</button>
+      <button class="btn btn-primary" id="efSendBtn" onclick="sendFoodEmail()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:15px;height:15px;" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        Send Email
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const TAB_IDS = ['labels','orders','meals','food','revenue','commis','balance'];
+
+  function switchTab(id) {
+    TAB_IDS.forEach(t => {
+      const panel = document.getElementById('tab-' + t);
+      const btn   = document.getElementById('btn-' + t);
+      const isActive = (t === id);
+      panel.classList.toggle('active', isActive);
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      btn.setAttribute('tabindex', isActive ? '0' : '-1');
+    });
+  }
+
+  /* ── Print Labels ── */
+  function printLabels() {
+    const date = '06/05/2026';
+
+    const schoolOrders = [
+      {
+        school: 'MDIS & CMMS Elkridge',
+        orders: [
+          { teacher: 'CMMS Pioneers', student: 'Aliana Homes', items: [
+            { line1: '1 - June Dessert', line2: '(June Dessert: Smores Pudding (Graham Crackers, Chocolate Pudding, Cool Whip, Mini Marshmallows & Chocolate Chips))' },
+            { line1: 'Grilled Cheese Combo with Soup of Week' }
+          ]},
+          { teacher: 'CMMS Shining Stars', student: 'Bodhi Bearss', items: [
+            { line1: '1 - Pizza Bagel', line2: '(Cookie, Pizza Bagel *VG*, Veggie of the Day)' }
+          ]},
+          { teacher: '1st Grade', student: "Ma'isah Jeroro", items: [
+            { line1: '1 - Pizza Bagel', line2: '(Cookie, Pizza Bagel *VG*, Veggie of the Day)' },
+            { line1: 'Drinks: 100% Apple Juice' }
+          ]},
+          { teacher: '2nd Grade', student: 'Asher Aje', items: [
+            { line1: 'Tenders & Tots (3 Chicken Tenders with Tater Tots)' },
+            { line1: 'Side: String Cheese' },
+            { line1: 'Side: String Cheese' }
+          ]},
+          { teacher: '3rd Grade', student: 'Marcus Lee', items: [
+            { line1: '1 - BBQ Rib Sandwich', line2: '(Boneless BBQ Rib Sandwich, Curly Fries, Vegetable of the Day)' },
+            { line1: 'Dessert: Brownie' }
+          ]},
+          { teacher: '3rd Grade', student: 'Priya Nair', items: [
+            { line1: '1 - BBQ Rib Sandwich', line2: '(Boneless BBQ Rib Sandwich, Curly Fries, Vegetable of the Day)' },
+            { line1: 'Dessert: Large Chocolate Chip Cookie' }
+          ]},
+        ]
+      },
+      {
+        school: 'Trinity School',
+        orders: [
+          { teacher: 'K Bluebirds', student: 'Emma Wilson', items: [
+            { line1: '1 - Chicken Tenders (3)' },
+            { line1: 'Dessert: Brownie' },
+            { line1: 'Fruit: Whole Apple' }
+          ]},
+          { teacher: 'K Bluebirds', student: 'James Park', items: [
+            { line1: '1 - Grilled Cheese Combo with Soup of Week' },
+            { line1: 'Side: String Cheese' },
+            { line1: 'Drinks: Bottled Water' }
+          ]},
+          { teacher: '2nd Grade', student: 'Sofia Rodriguez', items: [
+            { line1: '1 - Tenders & Tots (3 Chicken Tenders with Tater Tots)' },
+            { line1: 'Dessert: Cake of the Week' },
+            { line1: 'Fruit: Whole Apple' }
+          ]},
+          { teacher: '2nd Grade', student: 'Lucas Martin', items: [
+            { line1: '1 - Grilled Cheese Combo with Soup of Week' },
+            { line1: 'Side: Plain Utz Chips' },
+            { line1: 'Drinks: 100% Apple Juice' }
+          ]},
+          { teacher: '3rd Grade', student: 'Ava Chen', items: [
+            { line1: '1 - Tenders & Tots (3 Chicken Tenders with Tater Tots)' },
+            { line1: 'Dessert: Large Chocolate Chip Cookie' },
+            { line1: 'Fruit: Banana' }
+          ]},
+          { teacher: '4th Grade', student: 'Noah Patel', items: [
+            { line1: '1 - Tenders & Tots (3 Chicken Tenders with Tater Tots)' },
+            { line1: 'Oh Snap! Dilly Pickles Bites' },
+            { line1: 'Drink: Small Gatorade (12oz)' }
+          ]},
+        ]
+      }
+    ];
+
+    // Flatten to one label per item, grouped by school, sorted by menu item within each school
+    const schoolSections = schoolOrders.map(s => {
+      const labels = [];
+      s.orders.forEach(o => {
+        const total = o.items.length;
+        o.items.forEach((item, i) => {
+          labels.push({
+            header: `${date} - ${s.school} - ${o.teacher}`,
+            name:   total > 1 ? `${o.student} (${i + 1} of ${total})` : o.student,
+            line1:  item.line1,
+            line2:  item.line2 || '',
+            sortKey: item.line1.toLowerCase()
+          });
+        });
+      });
+      // Sort by menu item name
+      labels.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
+      return { school: s.school, labels };
+    });
+
+    const css = `
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: Arial, sans-serif; }
+      .school-section { display: grid; grid-template-columns: 1fr 1fr; }
+      .school-break { page-break-after: always; }
+      .label {
+        height: 2in;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 8px 18px;
+        border: 1px solid #000;
+        line-height: 1.45;
+      }
+      .lbl-hdr  { font-size: 10px; margin-bottom: 4px; }
+      .lbl-name { font-size: 11.5px; font-weight: bold; margin-bottom: 4px; }
+      .lbl-item { font-size: 11px; }
+      .lbl-desc { font-size: 10.5px; }
+      @media print {
+        body { margin: 0; }
+        .label { page-break-inside: avoid; }
+        .school-break { page-break-after: always; }
+      }
+    `;
+
+    const bodyHtml = schoolSections.map((section, si) => {
+      const labelHtml = section.labels.map(lbl => `
+        <div class="label">
+          <div class="lbl-hdr">${lbl.header}</div>
+          <div class="lbl-name">${lbl.name}</div>
+          <div class="lbl-item">${lbl.line1}</div>
+          ${lbl.line2 ? `<div class="lbl-desc">${lbl.line2}</div>` : ''}
+        </div>`
+      ).join('');
+      const isLast = si === schoolSections.length - 1;
+      return `<div class="school-section${isLast ? '' : ' school-break'}">${labelHtml}</div>`;
+    }).join('');
+
+    const w = window.open('', 'LunchboxLabels', 'width=960,height=720');
+    w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Lunchbox Labels</title><style>${css}</style></head><body>${bodyHtml}</body></html>`);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 400);
+  }
+
+  /* ── Print Delivery Sheets ── */
+  function printDeliverySheets() {
+    const date = '06/05/2026';
+    const now  = new Date().toLocaleDateString('en-US') + ', ' + new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+
+    const schools = [
+      {
+        name: 'MDIS &amp; CMMS Elkridge',
+        items: [
+          { name: 'BBQ Rib Sandwich', desc: 'Boneless BBQ Rib Sandwich, Curly Fries, Vegetable of the Day', count: 2 },
+          { name: 'GLUTEN FREE: Saus Egg &amp; Chs Bagel', desc: 'GLUTEN FREE Saus Egg &amp; Chs Bagel with Tater Tots &amp; an Apple', count: 1 },
+          { name: 'June Dessert', desc: 'June Dessert: Smores Pudding (Graham Crackers, Chocolate Pudding, Cool Whip, Mini Marshmallows &amp; Chocolate Chips)', count: 2 },
+          { name: 'Pizza Bagel', desc: 'Cookie, Pizza Bagel *VG*, Veggie of the Day', count: 2 },
+          { name: 'Chicken Tenders (3)', desc: '', count: 3 },
+          { name: 'Dessert: Brownie', desc: '', count: 1 },
+          { name: 'Dessert: Cake of the Week', desc: '', count: 1 },
+          { name: 'Dessert: Large Chocolate Chip Cookie', desc: '', count: 2 },
+          { name: 'Dessert: Rice Krispie Treat', desc: '', count: 1 },
+          { name: 'Drinks: 100% Apple Juice', desc: '', count: 1 },
+          { name: 'Fruit: Mandarin Orange', desc: '', count: 1 },
+          { name: 'Grilled Cheese Combo with Soup of Week', desc: '', count: 2 },
+          { name: 'Italian Sandwich on a Potato Roll with Provolone, Lettuce, Tomato &amp; Mayo Packet', desc: '', count: 1 },
+          { name: 'Loaded Baked Potato (Butter &amp; Cheese with Bacon on the Side) *GF*', desc: '', count: 1 },
+          { name: 'Loaded Sweet Potato (Butter, Brown Sugar &amp; Mini Marshmallows)', desc: '', count: 2 },
+          { name: 'Side: Plain Utz Chips', desc: '', count: 1 },
+          { name: 'Side: String Cheese', desc: '', count: 2 },
+          { name: 'Sun Butter &amp; Jelly on Wheat', desc: '', count: 1 },
+          { name: 'Tenders &amp; Tots (3 Chicken Tenders with Tater Tots)', desc: '', count: 1 },
+        ],
+        orders: [
+          { teacher: 'CMMS Pioneers', student: 'Aliana Homes',
+            food: ['1 - June Dessert<br><span style="font-size:10px">(June Dessert: Smores Pudding (Graham Crackers, Chocolate Pudding, Cool Whip, Mini Marshmallows &amp; Chocolate Chips))</span>', 'Grilled Cheese Combo with Soup of Week'] },
+          { teacher: 'CMMS Shining Stars', student: 'Bodhi Bearss',
+            food: ['1 - Pizza Bagel<br><span style="font-size:10px">(Cookie, Pizza Bagel *VG*, Veggie of the Day)</span>'] },
+          { teacher: '1st Grade', student: "Ma'isah Jeroro",
+            food: ['1 - Pizza Bagel<br><span style="font-size:10px">(Cookie, Pizza Bagel *VG*, Veggie of the Day)</span>', 'Drinks: 100% Apple Juice'] },
+          { teacher: '2nd Grade', student: 'Asher Aje',
+            food: ['Tenders &amp; Tots (3 Chicken Tenders with Tater Tots)', 'Side: String Cheese'] },
+          { teacher: '3rd Grade', student: 'Marcus Lee',
+            food: ['1 - BBQ Rib Sandwich<br><span style="font-size:10px">(Boneless BBQ Rib Sandwich, Curly Fries, Vegetable of the Day)</span>', 'Dessert: Brownie'] },
+          { teacher: '3rd Grade', student: 'Priya Nair',
+            food: ['1 - BBQ Rib Sandwich<br><span style="font-size:10px">(Boneless BBQ Rib Sandwich, Curly Fries, Vegetable of the Day)</span>', 'Dessert: Large Chocolate Chip Cookie'] },
+        ]
+      },
+      {
+        name: 'Trinity School',
+        items: [
+          { name: 'Chicken Tenders (3)', desc: '', count: 3 },
+          { name: 'Grilled Cheese Combo with Soup of Week', desc: '', count: 3 },
+          { name: 'Grown Up Grilled Cheese (American, Provolone &amp; Cheddar Cheese on Grilled Sourdough) *VG*', desc: '', count: 1 },
+          { name: 'Loaded Sweet Potato (Butter, Brown Sugar &amp; Mini Marshmallows)', desc: '', count: 2 },
+          { name: 'Tenders &amp; Tots (3 Chicken Tenders with Tater Tots)', desc: '', count: 5 },
+          { name: 'Side Caesar Salad (Romaine, Parmesan, Croutons &amp; Creamy Caesar) *VG*', desc: '', count: 1 },
+          { name: 'Italian Sandwich on a Potato Roll with Provolone, Lettuce, Tomato &amp; Mayo Packet', desc: '', count: 1 },
+          { name: 'Dessert: Brownie', desc: '', count: 1 },
+          { name: 'Dessert: Cake of the Week', desc: '', count: 1 },
+          { name: 'Dessert: Animal Crackers with Icing/Sprinkles Dip', desc: '', count: 1 },
+          { name: 'Dessert: Large Chocolate Chip Cookie', desc: '', count: 2 },
+          { name: 'Fruit: Banana', desc: '', count: 1 },
+          { name: 'Fruit: Whole Apple', desc: '', count: 4 },
+          { name: 'Oh Snap! Dilly Pickles Bites', desc: '', count: 2 },
+          { name: 'Side: Plain Utz Chips', desc: '', count: 1 },
+          { name: 'Side: String Cheese', desc: '', count: 1 },
+          { name: 'Drink: Small Gatorade (12oz)', desc: '', count: 1 },
+          { name: 'Drinks: 1% Chocolate Milk', desc: '', count: 1 },
+          { name: 'Drinks: 100% Apple Juice', desc: '', count: 1 },
+          { name: 'Drinks: Bottled Water', desc: '', count: 1 },
+          { name: 'Drinks: Large Gatorade (20oz)', desc: '', count: 1 },
+          { name: 'Drinks: Organic Whole White Milk', desc: '', count: 1 },
+        ],
+        orders: [
+          { teacher: 'K Bluebirds', student: 'Emma Wilson',
+            food: ['1 - Chicken Tenders (3)', 'Dessert: Brownie', 'Fruit: Whole Apple'] },
+          { teacher: 'K Bluebirds', student: 'James Park',
+            food: ['1 - Grilled Cheese Combo with Soup of Week', 'Side: String Cheese', 'Drinks: Bottled Water'] },
+          { teacher: '2nd Grade', student: 'Sofia Rodriguez',
+            food: ['1 - Tenders &amp; Tots (3 Chicken Tenders with Tater Tots)', 'Dessert: Cake of the Week', 'Fruit: Whole Apple'] },
+          { teacher: '2nd Grade', student: 'Lucas Martin',
+            food: ['1 - Grilled Cheese Combo with Soup of Week', 'Side: Plain Utz Chips', 'Drinks: 100% Apple Juice'] },
+          { teacher: '3rd Grade', student: 'Ava Chen',
+            food: ['1 - Tenders &amp; Tots (3 Chicken Tenders with Tater Tots)', 'Dessert: Large Chocolate Chip Cookie', 'Fruit: Banana'] },
+          { teacher: '4th Grade', student: 'Noah Patel',
+            food: ['1 - Tenders &amp; Tots (3 Chicken Tenders with Tater Tots)', 'Oh Snap! Dilly Pickles Bites', 'Drink: Small Gatorade (12oz)'] },
+        ]
+      }
+    ];
+
+    const css = `
+      body{font-family:Arial,sans-serif;font-size:11px;color:#000;margin:0;}
+      .page{width:7in;margin:0 auto;padding:.4in .5in;page-break-after:always;}
+      .page:last-child{page-break-after:auto;}
+      .pg-hdr{display:flex;justify-content:space-between;font-size:9.5px;color:#555;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #bbb;}
+      .school-title{font-size:13px;font-weight:bold;text-align:center;margin-bottom:14px;letter-spacing:.02em;}
+      table{width:100%;border-collapse:collapse;margin-bottom:18px;}
+      th{background:#ddd;font-weight:bold;padding:5px 8px;border:1px solid #999;text-align:left;font-size:10.5px;}
+      td{padding:4px 8px;border:1px solid #ccc;font-size:10.5px;vertical-align:top;}
+      tr:nth-child(even) td{background:#f2f2f2;}
+      .cnt{text-align:center;width:50px;font-weight:600;}
+      .item-name{font-weight:600;}
+      .item-desc{font-size:9.5px;color:#333;}
+      ul{margin:0;padding-left:14px;}
+      li{margin-bottom:3px;line-height:1.4;}
+      .section-hdr{font-size:11px;font-weight:bold;margin:18px 0 8px;padding-top:10px;border-top:2px solid #555;}
+      .pg-num{text-align:center;font-size:9px;color:#888;margin-top:12px;}
+      @media print{.page{page-break-after:always;}.page:last-child{page-break-after:auto;}}
+    `;
+
+    let html = '';
+    schools.forEach((school, si) => {
+      let itemRows = school.items.map((item, i) =>
+        `<tr>
+          <td>${item.name}${item.desc ? `<br><span class="item-desc">(${item.desc})</span>` : ''}</td>
+          <td class="cnt">${item.count}</td>
+        </tr>`
+      ).join('');
+
+      let orderRows = school.orders.map(o =>
+        `<tr>
+          <td>${o.teacher}</td>
+          <td>${o.student}</td>
+          <td><ul>${o.food.map(f=>`<li>${f}</li>`).join('')}</ul></td>
+        </tr>`
+      ).join('');
+
+      html += `
+        <div class="page">
+          <div class="pg-hdr"><span>${now}</span><span>Delivery Report</span></div>
+          <div class="school-title">${school.name}&nbsp;&nbsp;&nbsp;(${date})</div>
+          <table>
+            <thead><tr><th>Food Item</th><th class="cnt">Count</th></tr></thead>
+            <tbody>${itemRows}</tbody>
+          </table>
+          <div class="section-hdr"></div>
+          <table>
+            <thead><tr><th style="width:18%">Teacher</th><th style="width:22%">Student</th><th>Food</th></tr></thead>
+            <tbody>${orderRows}</tbody>
+          </table>
+          <div class="pg-num">${si+1} / ${schools.length}</div>
+        </div>`;
+    });
+
+    const w = window.open('', 'DeliveryReport', 'width=960,height=720');
+    w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Delivery Report</title><style>${css}</style></head><body>${html}</body></html>`);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 400);
+  }
+
+  /* ── Print Food Summary ── */
+  function printFoodSummary() {
+    const date = '06/05/2026';
+    const now  = new Date().toLocaleDateString('en-US') + ', ' + new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+
+    const schoolNames = ['MDIS &amp; CMMS Elkridge', 'Trinity School'];
+
+    // Rows: [item name, ...counts per school]
+    const rows = [
+      ['Dessert: Brownie',                                                          1, 1],
+      ['Dessert: Cake of the Week',                                                 1, 1],
+      ['Dessert: Animal Crackers with Icing/Sprinkles Dip',                        0, 1],
+      ['Dessert: Large Chocolate Chip Cookie',                                      2, 2],
+      ['Dessert: Rice Krispie Treat',                                               1, 0],
+      ['Fruit: Banana',                                                             0, 1],
+      ['Fruit: Mandarin Orange',                                                    1, 0],
+      ['Fruit: Whole Apple',                                                        0, 4],
+      ['Oh Snap! Dilly Pickles Bites',                                             0, 2],
+      ['Side: Plain Utz Chips',                                                     2, 1],
+      ['Side: String Cheese',                                                       2, 1],
+      ['Drink: Small Gatorade (12oz)',                                              0, 1],
+      ['Drinks: 1% Chocolate Milk',                                                 0, 1],
+      ['Drinks: 100% Apple Juice',                                                  1, 1],
+      ['Drinks: Bottled Water',                                                     0, 1],
+      ['Drinks: Large Gatorade (20oz)',                                             0, 1],
+      ['Drinks: Organic Whole White Milk',                                          0, 1],
+      ['Chicken Tenders (3)',                                                       3, 3],
+      ['Grilled Cheese Combo with Soup of Week',                                    2, 3],
+      ['Grown Up Grilled Cheese (American, Provolone &amp; Cheddar on Sourdough) *VG*', 0, 1],
+      ['Loaded Baked Potato (Butter &amp; Cheese with Bacon on the Side) *GF*',    1, 0],
+      ['Loaded Sweet Potato (Butter, Brown Sugar &amp; Mini Marshmallows)',         1, 2],
+      ['Tenders &amp; Tots (3 Chicken Tenders with Tater Tots)',                   3, 5],
+      ['Side Caesar Salad (Romaine, Parmesan, Croutons &amp; Creamy Caesar) *VG*', 0, 1],
+      ['Italian Sandwich on Potato Roll w/ Provolone, Lettuce, Tomato &amp; Mayo', 1, 1],
+      ['Sun Butter &amp; Jelly on Wheat',                                          1, 0],
+      ['June Dessert: Smores Pudding (Graham Crackers, Chocolate Pudding, Choc. Chips)', 2, 1],
+      ['Boneless BBQ Rib Sandwich',                                                2, 2],
+      ['Pizza Bagel *VG*',                                                         2, 2],
+    ];
+
+    const css = `
+      body{font-family:Arial,sans-serif;font-size:10.5px;color:#000;margin:0;}
+      .page{width:7in;margin:0 auto;padding:.4in .5in;}
+      .pg-hdr{display:flex;justify-content:space-between;font-size:9.5px;color:#555;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #bbb;}
+      .rpt-title{font-size:13px;font-weight:bold;text-align:center;margin-bottom:14px;}
+      table{width:100%;border-collapse:collapse;}
+      th{background:#ddd;font-weight:bold;padding:5px 8px;border:1px solid #999;font-size:10px;text-align:center;}
+      th.item-col{text-align:left;}
+      td{padding:4px 8px;border:1px solid #ccc;font-size:10.5px;vertical-align:middle;text-align:center;}
+      td.item-col{text-align:left;}
+      tr:nth-child(even) td{background:#f2f2f2;}
+      tfoot td{font-weight:bold;background:#e8e8e8;border-top:2px solid #888;}
+      .pg-num{text-align:center;font-size:9px;color:#888;margin-top:12px;}
+    `;
+
+    const schoolHeaders = schoolNames.map(s => `<th>${s}</th>`).join('');
+    let tableRows = rows.map((row, i) => {
+      const item = row[0];
+      const counts = row.slice(1);
+      const total = counts.reduce((a,b) => a+b, 0);
+      const cells = counts.map(c => `<td>${c}</td>`).join('');
+      return `<tr><td class="item-col">${item}</td>${cells}<td><strong>${total}</strong></td></tr>`;
+    }).join('');
+
+    // Totals row
+    const totals = schoolNames.map((_, si) => rows.reduce((sum, r) => sum + r[si+1], 0));
+    const grandTotal = totals.reduce((a,b) => a+b, 0);
+    const totalCells = totals.map(t => `<td>${t}</td>`).join('');
+
+    const html = `
+      <div class="page">
+        <div class="pg-hdr"><span>${now}</span><span>Delivery Report</span></div>
+        <div class="rpt-title">Food Summary Report - ${date}</div>
+        <table>
+          <thead>
+            <tr>
+              <th class="item-col" style="width:38%">Item</th>
+              ${schoolHeaders}
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>${tableRows}</tbody>
+          <tfoot>
+            <tr>
+              <td class="item-col"><strong>Total</strong></td>
+              ${totalCells}
+              <td><strong>${grandTotal}</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+        <div class="pg-num">1 / 1</div>
+      </div>`;
+
+    const w = window.open('', 'FoodSummary', 'width=960,height=720');
+    w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Food Summary Report</title><style>${css}</style></head><body>${html}</body></html>`);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 400);
+  }
+
+  /* ── Email to School Admin ── */
+
+  // Order data keyed by school for the preview
+  const EMAIL_DATA = {
+    'MDIS & CMMS Elkridge': {
+      email: 'coordinator@mdiscmms.org',
+      teachers: [
+        { name: '1st Grade', orders: [
+          { student: "Ma'isah Jeroro", items: ['1 - Cookie', '1 - Pizza Bagel VG', '1 - Veggie of the Day', '1 - Drinks: 100% Apple Juice'] }
+        ]},
+        { name: '2nd Grade', orders: [
+          { student: 'Asher Aje',      items: ['2 - Side: String Cheese', '1 - Tenders & Tots (3 Chicken Tenders with Tater Tots)'] },
+          { student: 'Mamello Nyathi', items: ['1 - Dessert: Choc Chip Cookie', '1 - Sun Butter & Jelly on Wheat'] }
+        ]},
+        { name: '4th Grade', orders: [
+          { student: 'Eden Aje',       items: ['1 - Italian Sandwich on Potato Roll w/ Provolone'] },
+          { student: 'Jacob Malloy',   items: ['1 - Chicken Tenders (3)', '1 - Dessert: Brownie', '1 - Side: Plain Utz Chips'] },
+          { student: 'Logan Maye',     items: ['1 - Boneless BBQ Rib Sandwich', '1 - Curly Fries', '1 - Vegetable of the Day', '1 - Dessert: Cake of the Week'] },
+          { student: 'Mandisa Nyathi', items: ['1 - Chicken Tenders (3)', '1 - Dessert: Large Choc Chip Cookie'] }
+        ]},
+        { name: '5th Grade', orders: [
+          { student: 'Riley Remy',     items: ['1 - Chicken Tenders (3)', '1 - Loaded Baked Potato (Butter & Cheese) GF'] }
+        ]}
+      ],
+      items: [
+        { name: 'BBQ Rib Sandwich', count: 2 },
+        { name: 'Chicken Tenders (3)', count: 3 },
+        { name: 'Italian Sandwich on Potato Roll', count: 1 },
+        { name: 'Loaded Baked Potato (Butter & Cheese) GF', count: 1 },
+        { name: 'Pizza Bagel VG', count: 2 },
+        { name: 'Sun Butter & Jelly on Wheat', count: 1 },
+        { name: 'Tenders & Tots (3 Chicken Tenders with Tater Tots)', count: 1 },
+        { name: 'Dessert: Brownie', count: 1 },
+        { name: 'Dessert: Cake of the Week', count: 1 },
+        { name: 'Dessert: Choc Chip Cookie', count: 1 },
+        { name: 'Dessert: Large Choc Chip Cookie', count: 1 },
+        { name: 'Side: Plain Utz Chips', count: 1 },
+        { name: 'Side: String Cheese', count: 2 },
+        { name: 'Drinks: 100% Apple Juice', count: 1 },
+      ]
+    },
+    'Trinity School': {
+      email: 'admin@trinityschool.org',
+      teachers: [
+        { name: 'K Bluebirds', orders: [
+          { student: 'Emma Wilson', items: ['1 - Sun Butter & Jelly on Wheat', '1 - Drinks: 100% Apple Juice'] },
+          { student: 'James Park',  items: ['1 - Pizza Bagel VG'] }
+        ]},
+        { name: '2nd Grade', orders: [
+          { student: 'Sofia Rodriguez', items: ['1 - Tenders & Tots', '1 - Side: String Cheese'] },
+          { student: 'Lucas Martin',    items: ['1 - Italian Sandwich on Potato Roll', '1 - Dessert: Brownie', '1 - Side: Utz Chips'] }
+        ]}
+      ],
+      items: [
+        { name: 'Italian Sandwich on Potato Roll', count: 1 },
+        { name: 'Pizza Bagel VG', count: 1 },
+        { name: 'Sun Butter & Jelly on Wheat', count: 1 },
+        { name: 'Tenders & Tots', count: 1 },
+        { name: 'Dessert: Brownie', count: 1 },
+        { name: 'Side: String Cheese', count: 1 },
+        { name: 'Side: Utz Chips', count: 1 },
+        { name: 'Drinks: 100% Apple Juice', count: 1 },
+      ]
+    }
+  };
+
+  function handleEmailAllCheck() {
+    const all = document.getElementById('emailChk-all').checked;
+    document.getElementById('emailChk-mdis').checked    = all;
+    document.getElementById('emailChk-trinity').checked = all;
+    updateEmailPreview();
+  }
+
+  function handleEmailIndivCheck() {
+    const mdis    = document.getElementById('emailChk-mdis').checked;
+    const trinity = document.getElementById('emailChk-trinity').checked;
+    document.getElementById('emailChk-all').checked = mdis && trinity;
+    updateEmailPreview();
+  }
+
+  function openEmailModal() {
+    // Reset to default state — all schools selected
+    document.getElementById('emailNote').value = '';
+    document.getElementById('emailChk-all').checked    = true;
+    document.getElementById('emailChk-mdis').checked   = true;
+    document.getElementById('emailChk-trinity').checked = true;
+    document.getElementById('emailFrom').value = '2026-06-05';
+    document.getElementById('emailTo').value   = '2026-06-05';
+    document.getElementById('emailSendBtn').disabled = false;
+    document.getElementById('emailSendBtn').innerHTML = `
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:15px;height:15px;" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+      Send Email`;
+    updateEmailPreview();
+    const modal = document.getElementById('emailModal');
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => modal.classList.add('open'));
+  }
+
+  function closeEmailModal() {
+    const modal = document.getElementById('emailModal');
+    modal.classList.remove('open');
+    setTimeout(() => { modal.style.display = 'none'; }, 180);
+  }
+
+  function handleEmailOverlayClick(e) {
+    if (e.target === document.getElementById('emailModal')) closeEmailModal();
+  }
+
+  function fmtDate(val) {
+    if (!val) return '';
+    const [y, m, d] = val.split('-');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${months[parseInt(m,10)-1]} ${parseInt(d,10)}, ${y}`;
+  }
+
+  function updateEmailPreview() {
+    const mdis    = document.getElementById('emailChk-mdis').checked;
+    const trinity = document.getElementById('emailChk-trinity').checked;
+    const fromVal = document.getElementById('emailFrom').value;
+    const toVal   = document.getElementById('emailTo').value;
+    const note    = document.getElementById('emailNote').value.trim();
+    const box     = document.getElementById('emailPreviewBox');
+
+    const selected = [
+      mdis    && 'MDIS & CMMS Elkridge',
+      trinity && 'Trinity School'
+    ].filter(Boolean);
+
+    if (!selected.length) {
+      box.innerHTML = '<div class="ep-placeholder">Select at least one school to preview the email.</div>';
+      return;
+    }
+
+    const dateRange = fromVal === toVal
+      ? fmtDate(fromVal)
+      : `${fmtDate(fromVal)} – ${fmtDate(toVal)}`;
+
+    const schoolLabel = selected.length === 2 ? 'All Schools' : selected[0];
+    const toAddrs     = selected.map(s => EMAIL_DATA[s].email).join(', ');
+
+    let sections = '';
+    selected.forEach(schoolVal => {
+      const data = EMAIL_DATA[schoolVal];
+      const totalOrders = data.teachers.reduce((sum, t) => sum + t.orders.length, 0);
+      if (selected.length > 1) {
+        sections += `<div style="margin:16px 0 6px;font-size:13px;font-weight:700;color:var(--text-1);border-bottom:2px solid var(--border);padding-bottom:6px;">${schoolVal} <span style="font-weight:400;font-size:12px;color:var(--text-3);">(${totalOrders} orders)</span></div>`;
+      }
+      data.teachers.forEach(t => {
+        const orderRows = t.orders.map(o => `
+          <div class="ep-order">
+            <div class="ep-student">${o.student}</div>
+            <div class="ep-items">${o.items.join('<br>')}</div>
+          </div>`).join('');
+        sections += `
+          <div class="ep-section">
+            <div class="ep-section-title">${t.name}</div>
+            ${orderRows}
+          </div>`;
+      });
+    });
+
+    const totalOrders = selected.reduce((sum, s) => sum + EMAIL_DATA[s].teachers.reduce((a, t) => a + t.orders.length, 0), 0);
+
+    // Build delivery summary table(s)
+    let deliverySummary = '';
+    selected.forEach(schoolVal => {
+      const data = EMAIL_DATA[schoolVal];
+      if (!data.items || !data.items.length) return;
+      const totalItems = data.items.reduce((s, r) => s + r.count, 0);
+      const rows = data.items.map(r => `
+        <tr>
+          <td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:12px;">${r.name}</td>
+          <td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:12px;text-align:right;font-weight:600;">${r.count}</td>
+        </tr>`).join('');
+      const schoolHdr = selected.length > 1
+        ? `<div style="font-size:12px;font-weight:700;color:var(--text-1);margin-bottom:6px;">${schoolVal}</div>` : '';
+      deliverySummary += `
+        ${schoolHdr}
+        <table style="width:100%;border-collapse:collapse;margin-bottom:${selected.length > 1 ? '16px' : '0'};">
+          <thead>
+            <tr style="background:var(--page-bg);">
+              <th style="padding:6px 8px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);border-bottom:2px solid var(--border);">Item</th>
+              <th style="padding:6px 8px;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);border-bottom:2px solid var(--border);">Qty</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+          <tfoot>
+            <tr style="background:var(--page-bg);">
+              <td style="padding:6px 8px;font-size:12px;font-weight:700;border-top:2px solid var(--border);">Total</td>
+              <td style="padding:6px 8px;font-size:12px;font-weight:700;text-align:right;border-top:2px solid var(--border);">${totalItems}</td>
+            </tr>
+          </tfoot>
+        </table>`;
+    });
+
+    box.innerHTML = `
+      <div class="ep-chrome">
+        <div class="ep-field"><span class="ep-field-lbl">To:</span><span>${toAddrs}</span></div>
+        <div class="ep-field"><span class="ep-field-lbl">From:</span><span>Lunch Box Program &lt;orders@lunchboxprogram.com&gt;</span></div>
+        <div class="ep-field"><span class="ep-field-lbl">Re:</span><span>Lunch Order Summary — ${schoolLabel} — ${dateRange}</span></div>
+      </div>
+      <div class="ep-edit-hint">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:12px;height:12px;flex-shrink:0;" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 11l6.364-6.364a2 2 0 112.828 2.828L11.828 13.828A2 2 0 019 14H7v-2a2 2 0 01.586-1.414z"/></svg>
+        Click anywhere in the email body to edit
+      </div>
+      <div class="ep-body" contenteditable="true" spellcheck="true">
+        <div class="ep-heading">Lunch Order Summary</div>
+        <p style="margin-bottom:14px;font-size:13px;color:var(--text-2);">
+          Hello,<br><br>
+          Please find below the lunch order summary for <strong>${schoolLabel}</strong> covering <strong>${dateRange}</strong>.
+          There ${totalOrders === 1 ? 'is' : 'are'} <strong>${totalOrders} order${totalOrders === 1 ? '' : 's'}</strong> for this period.
+          ${note ? `<br><br><em>${note}</em>` : ''}
+        </p>
+        ${sections}
+        <div style="margin-top:20px;padding-top:16px;border-top:2px solid var(--border);">
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:10px;">Delivery Summary</div>
+          ${deliverySummary}
+        </div>
+        <p style="margin-top:16px;font-size:12px;color:var(--text-3);">
+          If you have any questions, please reply to this email or contact us at orders@lunchboxprogram.com.
+        </p>
+      </div>
+      <div class="ep-footer">Sent by Lunch Box Program Admin &nbsp;·&nbsp; ${dateRange}</div>`;
+  }
+
+  function sendSchoolEmail() {
+    const mdis    = document.getElementById('emailChk-mdis').checked;
+    const trinity = document.getElementById('emailChk-trinity').checked;
+    const selected = [mdis && 'MDIS & CMMS Elkridge', trinity && 'Trinity School'].filter(Boolean);
+    const btn = document.getElementById('emailSendBtn');
+    const box = document.getElementById('emailPreviewBox');
+
+    if (!selected.length) {
+      alert('Please select at least one school.');
+      return;
+    }
+
+    const toAddrs = selected.map(s => EMAIL_DATA[s].email).join(', ');
+
+    // Show sending state
+    btn.disabled = true;
+    btn.innerHTML = 'Sending…';
+
+    setTimeout(() => {
+      // Show confirmation in preview pane
+      box.innerHTML = `
+        <div class="send-confirm">
+          <div class="send-confirm-icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <div class="send-confirm-title">Email Sent!</div>
+          <div class="send-confirm-sub">Report delivered to <strong>${toAddrs}</strong></div>
+        </div>`;
+
+      btn.innerHTML = `
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:15px;height:15px;" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        Sent`;
+
+      // Auto-close after 1.6s
+      setTimeout(() => closeEmailModal(), 1600);
+    }, 900);
+  }
+
+  /* ── Print Revenue ── */
+  function printRevenue() {
+    const now       = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    const printTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    const period    = 'May 6 – May 13, 2026';
+
+    const rows = [
+      { date: 'May 13, 2026', school: 'Cedar Park Academy',        orders: 24, revenue: 252.00 },
+      { date: 'May 13, 2026', school: 'Maple Grove Elementary',     orders: 31, revenue: 322.25 },
+      { date: 'May 13, 2026', school: 'Riverside Learning Center',  orders: 18, revenue: 189.00 },
+      { date: 'May 13, 2026', school: 'Sunridge Primary',           orders: 22, revenue: 231.00 },
+      { date: 'May 12, 2026', school: 'Valley View School',         orders: 27, revenue: 283.50 },
+      { date: 'May 12, 2026', school: 'Westside Academy',           orders: 19, revenue: 199.50 },
+      { date: 'May 9, 2026',  school: 'Cedar Park Academy',         orders: 26, revenue: 272.50 },
+      { date: 'May 9, 2026',  school: 'Maple Grove Elementary',     orders: 33, revenue: 343.75 },
+      { date: 'May 8, 2026',  school: 'Riverside Learning Center',  orders: 20, revenue: 210.00 },
+      { date: 'May 8, 2026',  school: 'Sunridge Primary',           orders: 29, revenue: 304.50 },
+      { date: 'May 7, 2026',  school: 'Valley View School',         orders: 25, revenue: 262.50 },
+      { date: 'May 6, 2026',  school: 'Westside Academy',           orders: 21, revenue: 220.50 },
+    ];
+
+    const totalOrders  = rows.reduce((s, r) => s + r.orders,  0);
+    const totalRevenue = rows.reduce((s, r) => s + r.revenue, 0);
+
+    // School-level summary for the sidebar panel
+    const bySchool = {};
+    rows.forEach(r => {
+      if (!bySchool[r.school]) bySchool[r.school] = { orders: 0, revenue: 0 };
+      bySchool[r.school].orders  += r.orders;
+      bySchool[r.school].revenue += r.revenue;
+    });
+    const schoolSummaryRows = Object.entries(bySchool).map(([name, d]) =>
+      `<tr>
+        <td>${name}</td>
+        <td class="num">${d.orders}</td>
+        <td class="num">$${d.revenue.toFixed(2)}</td>
+      </tr>`
+    ).join('');
+
+    // Daily detail rows — group by date with a subtle shading break
+    let lastDate = '';
+    const detailRows = rows.map(r => {
+      const shade = r.date !== lastDate ? 'alt' : '';
+      lastDate = r.date;
+      return `<tr class="${shade}">
+        <td>${r.date}</td>
+        <td>${r.school}</td>
+        <td class="num">${r.orders}</td>
+        <td class="num">$${r.revenue.toFixed(2)}</td>
+      </tr>`;
+    }).join('');
+
+    const css = `
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: Arial, sans-serif; font-size: 11px; color: #111; background: #fff; }
+      .page { width: 7.5in; margin: 0 auto; padding: .45in .5in .5in; }
+
+      /* ── header ── */
+      .rpt-hdr { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; border-bottom: 2px solid #222; padding-bottom: 10px; }
+      .rpt-title { font-size: 17px; font-weight: bold; }
+      .rpt-sub   { font-size: 11px; color: #555; margin-top: 3px; }
+      .rpt-meta  { text-align: right; font-size: 10px; color: #666; line-height: 1.6; }
+
+      /* ── summary cards ── */
+      .summary-row { display: flex; gap: 16px; margin-bottom: 20px; }
+      .sum-card { flex: 1; border: 1px solid #ccc; border-radius: 4px; padding: 10px 14px; }
+      .sum-lbl  { font-size: 9px; font-weight: bold; text-transform: uppercase; letter-spacing: .07em; color: #666; margin-bottom: 4px; }
+      .sum-val  { font-size: 20px; font-weight: bold; }
+
+      /* ── section title ── */
+      .section-title { font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: .07em; color: #555; margin: 18px 0 6px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+
+      /* ── tables ── */
+      table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+      th { background: #222; color: #fff; font-size: 9.5px; font-weight: bold; padding: 6px 10px; text-align: left; }
+      th.num, td.num { text-align: right; }
+      td { padding: 5px 10px; font-size: 10.5px; border-bottom: 1px solid #eee; }
+      tr.alt td { background: #f7f7f7; }
+      tfoot td { font-weight: bold; background: #e8e8e8; border-top: 2px solid #aaa; font-size: 11px; }
+
+      /* ── footer ── */
+      .pg-footer { margin-top: 20px; padding-top: 8px; border-top: 1px solid #ccc; display: flex; justify-content: space-between; font-size: 9px; color: #888; }
+
+      @media print {
+        body { margin: 0; }
+        .page { padding: .3in .4in; }
+      }
+    `;
+
+    const html = `
+      <div class="page">
+
+        <!-- Report header -->
+        <div class="rpt-hdr">
+          <div>
+            <div class="rpt-title">Revenue Report</div>
+            <div class="rpt-sub">Period: ${period}</div>
+          </div>
+          <div class="rpt-meta">
+            Lunch Box Program<br>
+            Printed: ${now} at ${printTime}
+          </div>
+        </div>
+
+        <!-- Summary cards -->
+        <div class="summary-row">
+          <div class="sum-card">
+            <div class="sum-lbl">Total Orders</div>
+            <div class="sum-val">${totalOrders}</div>
+          </div>
+          <div class="sum-card">
+            <div class="sum-lbl">Total Revenue</div>
+            <div class="sum-val">$${totalRevenue.toFixed(2)}</div>
+          </div>
+          <div class="sum-card">
+            <div class="sum-lbl">Schools</div>
+            <div class="sum-val">${Object.keys(bySchool).length}</div>
+          </div>
+          <div class="sum-card">
+            <div class="sum-lbl">Avg. Revenue / Day</div>
+            <div class="sum-val">$${(totalRevenue / [...new Set(rows.map(r => r.date))].length).toFixed(2)}</div>
+          </div>
+        </div>
+
+        <!-- School summary -->
+        <div class="section-title">Revenue by School</div>
+        <table>
+          <thead>
+            <tr><th>School</th><th class="num">Orders</th><th class="num">Revenue</th></tr>
+          </thead>
+          <tbody>${schoolSummaryRows}</tbody>
+          <tfoot>
+            <tr>
+              <td><strong>Total</strong></td>
+              <td class="num">${totalOrders}</td>
+              <td class="num">$${totalRevenue.toFixed(2)}</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <!-- Daily detail -->
+        <div class="section-title">Daily Detail</div>
+        <table>
+          <thead>
+            <tr><th>Date</th><th>School</th><th class="num">Orders</th><th class="num">Revenue</th></tr>
+          </thead>
+          <tbody>${detailRows}</tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2"><strong>Week Total (May 6–13)</strong></td>
+              <td class="num">${totalOrders}</td>
+              <td class="num">$${totalRevenue.toFixed(2)}</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="pg-footer">
+          <span>Lunch Box Program — Revenue Report</span>
+          <span>Page 1 of 1</span>
+        </div>
+
+      </div>`;
+
+    const w = window.open('', 'RevenueReport', 'width=960,height=760');
+    w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Revenue Report — ${period}</title><style>${css}</style></head><body>${html}</body></html>`);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 400);
+  }
+
+  /* ══════════════════════════════════════
+     FOOD REPORTS — SHARED DATA
+  ══════════════════════════════════════ */
+  const FOOD_ITEMS = [
+    { name: 'Cheese Pizza',      type: 'Entree', ordered: 87,  qty: 102, price: 5.50, revenue: 561.00 },
+    { name: 'Chicken Nuggets',   type: 'Entree', ordered: 74,  qty:  89, price: 5.75, revenue: 511.75 },
+    { name: 'Mac & Cheese',      type: 'Entree', ordered: 65,  qty:  72, price: 5.25, revenue: 378.00 },
+    { name: 'Turkey Sandwich',   type: 'Entree', ordered: 58,  qty:  63, price: 5.50, revenue: 346.50 },
+    { name: 'Beef Taco (x2)',    type: 'Entree', ordered: 51,  qty:  56, price: 5.75, revenue: 322.00 },
+    { name: 'Veggie Wrap',       type: 'Entree', ordered: 32,  qty:  35, price: 5.25, revenue: 183.75 },
+    { name: 'Grilled Cheese',    type: 'Entree', ordered: 49,  qty:  52, price: 5.00, revenue: 260.00 },
+    { name: 'Chocolate Milk',    type: 'Drink',  ordered: 122, qty: 138, price: 1.50, revenue: 207.00 },
+    { name: 'Apple Juice',       type: 'Drink',  ordered: 98,  qty: 110, price: 1.50, revenue: 165.00 },
+    { name: 'Milk (White)',      type: 'Drink',  ordered: 89,  qty:  95, price: 1.25, revenue: 118.75 },
+    { name: 'Apple Slices',      type: 'Side',   ordered: 77,  qty:  85, price: 1.75, revenue: 148.75 },
+    { name: 'Fruit Cup',         type: 'Side',   ordered: 66,  qty:  70, price: 2.00, revenue: 140.00 },
+  ];
+
+  /* ── Print Food Report ── */
+  function printFoodReport() {
+    _openFoodPrintWindow(false);
+  }
+
+  function downloadFoodPDF() {
+    _openFoodPrintWindow(true);
+  }
+
+  function printMealCount(isPDF) {
+    const now       = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    const printTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    const period    = 'May 6 – May 13, 2026';
+
+    const rows = [
+      { date: 'May 13, 2026', school: 'Cedar Park Academy',        ordered: 24, served: 24, variance:  0 },
+      { date: 'May 13, 2026', school: 'Maple Grove Elementary',    ordered: 31, served: 30, variance: -1 },
+      { date: 'May 13, 2026', school: 'Riverside Learning Center', ordered: 18, served: 18, variance:  0 },
+      { date: 'May 13, 2026', school: 'Sunridge Primary',          ordered: 22, served: 23, variance: +1 },
+      { date: 'May 12, 2026', school: 'Valley View School',        ordered: 27, served: 27, variance:  0 },
+      { date: 'May 12, 2026', school: 'Westside Academy',          ordered: 19, served: 18, variance: -1 },
+      { date: 'May 9, 2026',  school: 'Cedar Park Academy',        ordered: 26, served: 26, variance:  0 },
+      { date: 'May 9, 2026',  school: 'Maple Grove Elementary',    ordered: 33, served: 33, variance:  0 },
+      { date: 'May 9, 2026',  school: 'Riverside Learning Center', ordered: 20, served: 19, variance: -1 },
+      { date: 'May 8, 2026',  school: 'Sunridge Primary',          ordered: 29, served: 29, variance:  0 },
+      { date: 'May 8, 2026',  school: 'Valley View School',        ordered: 25, served: 26, variance: +1 },
+      { date: 'May 7, 2026',  school: 'Westside Academy',          ordered: 21, served: 21, variance:  0 },
+    ];
+
+    const totalOrdered  = rows.reduce((s, r) => s + r.ordered,  0);
+    const totalServed   = rows.reduce((s, r) => s + r.served,   0);
+    const totalVariance = rows.reduce((s, r) => s + r.variance, 0);
+
+    const varStyle = v => v < 0 ? 'color:#c00;font-weight:700;' : v > 0 ? 'color:#1d4ed8;font-weight:700;' : 'color:#16a34a;font-weight:700;';
+    const varFmt   = v => v > 0 ? '+' + v : String(v);
+
+    let tableRows = '';
+    let lastDate  = '';
+    rows.forEach((r, i) => {
+      const dateCell = r.date !== lastDate ? `<td rowspan="${rows.filter(x => x.date === r.date).length}">${r.date}</td>` : '';
+      lastDate = r.date;
+      tableRows += `<tr class="${i % 2 === 0 ? '' : 'alt'}">
+        ${dateCell}
+        <td>${r.school}</td>
+        <td class="num">${r.ordered}</td>
+        <td class="num">${r.served}</td>
+        <td class="num" style="${varStyle(r.variance)}">${varFmt(r.variance)}</td>
+      </tr>`;
+    });
+
+    const pdfTip = isPDF
+      ? `<div class="pdf-tip">&#128161; To save as PDF: in the print dialog set the destination to <strong>"Save as PDF"</strong>.</div>`
+      : '';
+
+    const css = `
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: Arial, sans-serif; font-size: 11px; color: #111; background: #fff; }
+      .page { width: 7.5in; margin: 0 auto; padding: .45in .5in .5in; }
+      .pdf-tip { background: #fffbe6; border: 1px solid #f0d060; border-radius: 4px; padding: 8px 12px; font-size: 10px; margin-bottom: 16px; }
+      .rpt-hdr { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; border-bottom: 2px solid #222; padding-bottom: 10px; }
+      .rpt-title { font-size: 17px; font-weight: bold; }
+      .rpt-sub   { font-size: 11px; color: #555; margin-top: 3px; }
+      .rpt-meta  { text-align: right; font-size: 10px; color: #666; line-height: 1.6; }
+      .section-title { font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: .07em; color: #555; margin: 18px 0 6px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+      table { width: 100%; border-collapse: collapse; }
+      th { background: #222; color: #fff; font-size: 9.5px; font-weight: bold; padding: 6px 10px; text-align: left; }
+      th.num, td.num { text-align: right; }
+      td { padding: 5px 10px; font-size: 10.5px; border-bottom: 1px solid #eee; vertical-align: top; }
+      tr.alt td { background: #f7f7f7; }
+      tfoot td { font-weight: bold; background: #e0e0e0; border-top: 2px solid #999; font-size: 11px; padding: 7px 10px; }
+      .pg-footer { margin-top: 20px; padding-top: 8px; border-top: 1px solid #ccc; display: flex; justify-content: space-between; font-size: 9px; color: #888; }
+      @media print { body { margin: 0; } .pdf-tip { display: none; } }
+    `;
+
+    const html = `
+      <div class="page">
+        ${pdfTip}
+        <div class="rpt-hdr">
+          <div>
+            <div class="rpt-title">Meal Count Report</div>
+            <div class="rpt-sub">Period: ${period} &nbsp;·&nbsp; All Schools</div>
+          </div>
+          <div class="rpt-meta">Lunch Box Program<br>${isPDF ? 'Generated' : 'Printed'}: ${now} at ${printTime}</div>
+        </div>
+        <div class="section-title">Orders vs. Meals Served — Variance Tracking</div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:18%">Date</th>
+              <th>School</th>
+              <th class="num" style="width:14%">Ordered</th>
+              <th class="num" style="width:12%">Served</th>
+              <th class="num" style="width:12%">Variance</th>
+            </tr>
+          </thead>
+          <tbody>${tableRows}</tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2">Totals — ${rows.length} records</td>
+              <td class="num">${totalOrdered}</td>
+              <td class="num">${totalServed}</td>
+              <td class="num" style="${varStyle(totalVariance)}">${varFmt(totalVariance)}</td>
+            </tr>
+          </tfoot>
+        </table>
+        <div class="pg-footer">
+          <span>Lunch Box Program — Meal Count Report</span>
+          <span>Page 1 of 1</span>
+        </div>
+      </div>`;
+
+    const winTitle = isPDF ? 'Meal Count — Save as PDF' : 'Meal Count Report';
+    const w = window.open('', 'MealCount', 'width=860,height=760');
+    w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${winTitle}</title><style>${css}</style></head><body>${html}</body></html>`);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 400);
+  }
+
+  function _openFoodPrintWindow(isPDF) {
+    const now       = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    const printTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    const period    = 'May 1 – May 31, 2026';
+
+    const totalCount = FOOD_ITEMS.reduce((s, r) => s + r.ordered, 0);
+
+    const TYPE_ORDER  = ['Entree', 'Drink', 'Side', 'Snack'];
+    const TYPE_LABELS = { Entree: 'Entrees', Drink: 'Drinks', Side: 'Sides', Snack: 'Snacks' };
+    const grouped = {};
+    FOOD_ITEMS.forEach(r => {
+      if (!grouped[r.type]) grouped[r.type] = [];
+      grouped[r.type].push(r);
+    });
+
+    let tableRows = '';
+    TYPE_ORDER.forEach(type => {
+      if (!grouped[type]) return;
+      const typeTotal = grouped[type].reduce((s, r) => s + r.ordered, 0);
+      tableRows += `<tr class="type-hdr"><td>${TYPE_LABELS[type]}</td><td></td><td class="num">${typeTotal}</td></tr>`;
+      grouped[type].forEach((r, i) => {
+        tableRows += `<tr class="${i % 2 === 0 ? '' : 'alt'}">
+          <td style="padding-left:16px;color:#555;font-size:10px;">${r.type}</td>
+          <td>${r.name}</td>
+          <td class="num">${r.ordered}</td>
+        </tr>`;
+      });
+    });
+
+    const pdfTip = isPDF
+      ? `<div class="pdf-tip">&#128161; To save as PDF: in the print dialog set the destination to <strong>"Save as PDF"</strong>.</div>`
+      : '';
+
+    const css = `
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: Arial, sans-serif; font-size: 11px; color: #111; background: #fff; }
+      .page { width: 7.5in; margin: 0 auto; padding: .45in .5in .5in; }
+      .pdf-tip { background: #fffbe6; border: 1px solid #f0d060; border-radius: 4px; padding: 8px 12px; font-size: 10px; margin-bottom: 16px; }
+      .rpt-hdr { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; border-bottom: 2px solid #222; padding-bottom: 10px; }
+      .rpt-title { font-size: 17px; font-weight: bold; }
+      .rpt-sub   { font-size: 11px; color: #555; margin-top: 3px; }
+      .rpt-meta  { text-align: right; font-size: 10px; color: #666; line-height: 1.6; }
+      .section-title { font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: .07em; color: #555; margin: 18px 0 6px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+      table { width: 100%; border-collapse: collapse; }
+      th { background: #222; color: #fff; font-size: 9.5px; font-weight: bold; padding: 6px 10px; text-align: left; }
+      th.num, td.num { text-align: right; }
+      td { padding: 5px 10px; font-size: 10.5px; border-bottom: 1px solid #eee; }
+      tr.alt td { background: #f7f7f7; }
+      tr.type-hdr td { background: #e8e8e8; font-weight: bold; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: #333; padding: 6px 10px; border-bottom: 1px solid #ccc; border-top: 2px solid #bbb; }
+      tfoot td { font-weight: bold; background: #e0e0e0; border-top: 2px solid #999; font-size: 11px; padding: 7px 10px; }
+      .pg-footer { margin-top: 20px; padding-top: 8px; border-top: 1px solid #ccc; display: flex; justify-content: space-between; font-size: 9px; color: #888; }
+      @media print { body { margin: 0; } .pdf-tip { display: none; } }
+    `;
+
+    const html = `
+      <div class="page">
+        ${pdfTip}
+        <div class="rpt-hdr">
+          <div>
+            <div class="rpt-title">Food Report</div>
+            <div class="rpt-sub">Period: ${period} &nbsp;·&nbsp; All Schools</div>
+          </div>
+          <div class="rpt-meta">Lunch Box Program<br>${isPDF ? 'Generated' : 'Printed'}: ${now} at ${printTime}</div>
+        </div>
+        <div class="section-title">Food Items by Type</div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:18%">Food Type</th>
+              <th>Food Item</th>
+              <th class="num" style="width:14%">Count</th>
+            </tr>
+          </thead>
+          <tbody>${tableRows}</tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2">Totals — ${FOOD_ITEMS.length} items</td>
+              <td class="num">${totalCount}</td>
+            </tr>
+          </tfoot>
+        </table>
+        <div class="pg-footer">
+          <span>Lunch Box Program — Food Report</span>
+          <span>Page 1 of 1</span>
+        </div>
+      </div>`;
+
+    const winTitle = isPDF ? 'Food Report — Save as PDF' : 'Food Report';
+    const w = window.open('', 'FoodReport', 'width=860,height=760');
+    w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${winTitle}</title><style>${css}</style></head><body>${html}</body></html>`);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 400);
+  }
+
+  /* ══════════════════════════════════════
+     EMAIL FOOD REPORT MODAL
+  ══════════════════════════════════════ */
+  function openEmailFoodModal() {
+    document.getElementById('efToEmail').value  = '';
+    document.getElementById('efMessage').value  = '';
+    const btn = document.getElementById('efSendBtn');
+    btn.disabled = false;
+    btn.innerHTML = `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:15px;height:15px;" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> Send Email`;
+    const modal = document.getElementById('emailFoodModal');
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => {
+      modal.classList.add('open');
+      document.getElementById('efToEmail').focus();
+    });
+  }
+
+  function closeEmailFoodModal() {
+    const modal = document.getElementById('emailFoodModal');
+    modal.classList.remove('open');
+    setTimeout(() => { modal.style.display = 'none'; }, 180);
+  }
+
+  function handleEmailFoodOverlayClick(e) {
+    if (e.target === document.getElementById('emailFoodModal')) closeEmailFoodModal();
+  }
+
+  function sendFoodEmail() {
+    const to = document.getElementById('efToEmail').value.trim();
+    if (!to) {
+      document.getElementById('efToEmail').focus();
+      return;
+    }
+
+    const btn = document.getElementById('efSendBtn');
+    btn.disabled = true;
+    btn.innerHTML = 'Sending…';
+
+    const displayTo = to.length > 42 ? to.slice(0, 42) + '…' : to;
+
+    setTimeout(() => {
+      const bodyWrap = document.getElementById('emailFoodModal').querySelector('.modal-box > div:not(.modal-hdr):not(.modal-ftr)');
+      bodyWrap.innerHTML = `
+        <div class="send-confirm" style="padding:32px 24px;">
+          <div class="send-confirm-icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:26px;height:26px;color:var(--green);" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <div class="send-confirm-title">Email Sent!</div>
+          <div class="send-confirm-sub">Food report delivered to <strong>${displayTo}</strong>
+            <div style="margin-top:8px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;color:var(--text-3);">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:13px;height:13px;" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              FoodReport_May2026.pdf attached
+            </div>
+          </div>
+        </div>`;
+      btn.innerHTML = `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:15px;height:15px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Sent`;
+      setTimeout(() => closeEmailFoodModal(), 1800);
+    }, 900);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closeEmailModal();
+      closeEmailFoodModal();
+    }
+  });
+
+  // Arrow-key keyboard navigation on tab bar (ARIA pattern)
+  document.querySelector('.tabs').addEventListener('keydown', e => {
+    const btns = Array.from(document.querySelectorAll('.tab-btn'));
+    const idx  = btns.indexOf(document.activeElement);
+    if (idx === -1) return;
+    let next = -1;
+    if (e.key === 'ArrowRight') next = (idx + 1) % btns.length;
+    if (e.key === 'ArrowLeft')  next = (idx - 1 + btns.length) % btns.length;
+    if (e.key === 'Home') next = 0;
+    if (e.key === 'End')  next = btns.length - 1;
+    if (next !== -1) {
+      e.preventDefault();
+      btns[next].focus();
+      btns[next].click();
+    }
+  });
+
+  function toggleUserMenu() {
+    document.getElementById('user-dropdown').classList.toggle('open');
+  }
+  document.addEventListener('click', function(e) {
+    var menu = document.querySelector('.user-menu');
+    if (menu && !menu.contains(e.target)) {
+      document.getElementById('user-dropdown').classList.remove('open');
+    }
+  });
+
+  /* ── Mobile Nav ── */
+  function toggleMobileNav() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+    const btn = document.querySelector('.hamburger');
+    const isOpen = sidebar.classList.toggle('mobile-open');
+    overlay.classList.toggle('mobile-open', isOpen);
+    if (btn) btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  }
+  function closeMobileNav() {
+    document.querySelector('.sidebar').classList.remove('mobile-open');
+    document.querySelector('.sidebar-overlay').classList.remove('mobile-open');
+    var btn = document.querySelector('.hamburger');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  }
+  document.querySelector('.sidebar-overlay').addEventListener('click', closeMobileNav);
+</script>
+</body>
+</html>

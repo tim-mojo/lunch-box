@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — Lunch Box Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  <style>
+    /* ── RESET ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+
+    /* ── ADA: SKIP LINK ── */
+    .skip-link { position: absolute; top: -100%; left: 12px; background: #ec7229; color: #fff; padding: 10px 18px; font-size: 14px; font-weight: 600; border-radius: 0 0 6px 6px; text-decoration: none; z-index: 9999; transition: top 0.15s; }
+    .skip-link:focus { top: 0; }
+
+    /* ── ADA: FOCUS RING ── */
+    :focus-visible { outline: 3px solid #ec7229; outline-offset: 2px; border-radius: 3px; }
+
+    /* ── TOKENS ── */
+    :root {
+      --sidebar-w: 256px;
+      --header-h: 60px;
+      --sidebar:   #0f172a;
+      --sidebar-hover: #1e293b;
+      --sidebar-active: #1e293b;
+      --green:     #9abc10;
+      --green-dk:  #7a9c0c;
+      --green-lt:  #ecf5d0;
+      --orange:    #ec7229;
+      --orange-dk: #d4621f;
+      --orange-lt: #fff4ed;
+      --page-bg:   #f1f5f9;
+      --surface:   #ffffff;
+      --border:    #e2e8f0;
+      --text-1:    #0f172a;
+      --text-2:    #475569;
+      --text-3:    #94a3b8;
+      --red:       #dc2626;
+      --red-lt:    #fef2f2;
+      --r:         8px;
+      --r-lg:      12px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+      --shadow:    0 4px 12px rgba(0,0,0,.08);
+    }
+
+    /* ── LAYOUT ── */
+    body { font-family: 'Inter', sans-serif; background: var(--page-bg); color: var(--text-1); display: flex; min-height: 100vh; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { width: var(--sidebar-w); background: var(--sidebar); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; overflow-y: auto; }
+    .sidebar-brand { padding: 20px 16px 16px; border-bottom: 1px solid rgba(255,255,255,.07); }
+    .sidebar-brand-box { display: inline-block; }
+    .sidebar-brand-box img { height: 40px; width: auto; display: block; }
+    .sidebar-nav { flex: 1; padding: 16px 10px; }
+    .nav-group { margin-bottom: 20px; }
+    .nav-group-label { font-size: 10px; font-weight: 700; color: rgba(255,255,255,.3); letter-spacing: .1em; text-transform: uppercase; padding: 0 10px; margin-bottom: 6px; }
+    .nav-link { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 6px; color: rgba(255,255,255,.65); font-size: 14px; font-weight: 500; text-decoration: none; position: relative; transition: background .12s, color .12s; margin-bottom: 5px; }
+    .nav-link svg { width: 18px; height: 18px; flex-shrink: 0; stroke-width: 1.75; }
+    .nav-link:hover { background: var(--sidebar-hover); color: #fff; }
+    .nav-link.active { background: var(--sidebar-active); color: #fff; font-weight: 600; }
+    .nav-link.active::before { content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; background: var(--green); border-radius: 0 3px 3px 0; }
+    .nav-badge { margin-left: auto; background: var(--orange); color: #fff; font-size: 11px; font-weight: 700; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; display: flex; align-items: center; justify-content: center; }
+    .sidebar-footer { padding: 12px 10px; border-top: 1px solid rgba(255,255,255,.07); display: flex; flex-direction: column; gap: 2px; }
+
+    /* ── MAIN ── */
+    .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* ── TOPBAR ── */
+    .topbar { height: var(--header-h); background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 28px; position: sticky; top: 0; z-index: 50; flex-shrink: 0; }
+    .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-2); }
+    .breadcrumb a { color: var(--text-2); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--text-1); }
+    .breadcrumb-sep { color: var(--text-3); font-size: 16px; }
+    .breadcrumb-current { color: var(--text-1); font-weight: 600; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    .search-box { display: flex; align-items: center; gap: 8px; height: 36px; background: var(--page-bg); border: 1px solid var(--border); border-radius: var(--r); padding: 0 12px; transition: border-color .15s; }
+    .search-box:focus-within { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(236,114,41,.12); }
+    .search-box svg { width: 15px; height: 15px; color: var(--text-3); flex-shrink: 0; }
+    .search-box input { border: none; background: none; font-size: 13px; color: var(--text-1); font-family: 'Inter', sans-serif; outline: none; width: 180px; }
+    .search-box input::placeholder { color: var(--text-3); }
+    .icon-btn { width: 36px; height: 36px; border-radius: var(--r); border: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-2); position: relative; transition: background .12s; }
+    .icon-btn:hover { background: var(--page-bg); }
+    .icon-btn svg { width: 18px; height: 18px; }
+    .badge-dot { position: absolute; top: -3px; right: -3px; width: 16px; height: 16px; background: var(--orange); border-radius: 50%; font-size: 9px; font-weight: 700; color: #fff; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; }
+    .user-chip { display: flex; align-items: center; gap: 8px; padding: 5px 10px; border-radius: var(--r); border: 1px solid var(--border); cursor: pointer; font-size: 13px; font-weight: 500; background: var(--surface); transition: background .12s; }
+    .user-chip:hover { background: var(--page-bg); }
+    .user-menu{position:relative;}
+    .user-dropdown{display:none;position:absolute;top:calc(100% + 6px);right:0;min-width:160px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 8px 24px rgba(15,23,42,.12);z-index:300;overflow:hidden;padding:4px 0;}
+    .user-dropdown.open{display:block;}
+    .user-dropdown a{display:flex;align-items:center;gap:8px;padding:9px 14px;font-size:13px;color:var(--text-1);text-decoration:none;transition:background .12s;}
+    .user-dropdown a:hover{background:var(--page-bg);}
+    .user-dropdown-divider{height:1px;background:var(--border);margin:4px 0;}
+    input[type="checkbox"]{appearance:none;-webkit-appearance:none;width:16px;height:16px;min-width:16px;border:2px solid #cbd5e1;border-radius:4px;cursor:pointer;background:#fff;position:relative;transition:background .12s,border-color .12s;flex-shrink:0;}
+    input[type="checkbox"]:checked{background:var(--orange);border-color:var(--orange);}
+    input[type="checkbox"]:checked::after{content:'';position:absolute;left:3px;top:0px;width:5px;height:9px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg);}
+    input[type="checkbox"]:focus-visible{outline:3px solid rgba(236,114,41,.4);outline-offset:2px;}
+    .avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--orange); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+    /* ── PAGE CONTENT ── */
+    .content { padding: 28px 28px 40px; flex: 1; }
+    .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+    .page-title { font-size: 22px; font-weight: 700; color: var(--text-1); }
+    .page-desc { font-size: 13px; color: var(--text-2); margin-top: 3px; }
+
+    /* ── BUTTONS ── */
+    .btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: var(--r); font-size: 14px; font-weight: 600; font-family: 'Inter', sans-serif; cursor: pointer; border: 1px solid transparent; transition: background .12s, border-color .12s; text-decoration: none; line-height: 1.4; }
+    .btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+    .btn-primary { background: var(--orange); color: #fff; border-color: var(--orange); }
+    .btn-primary:hover { background: var(--orange-dk); border-color: var(--orange-dk); }
+    .btn-secondary { background: var(--surface); color: var(--text-1); border-color: var(--border); }
+    .btn-secondary:hover { background: var(--page-bg); }
+    .btn-success { background: var(--green); color: #1a2500; border-color: var(--green); }
+    .btn-success:hover { background: var(--green-dk); border-color: var(--green-dk); }
+    .btn-danger { background: var(--red); color: #fff; border-color: var(--red); }
+    .btn-sm { padding: 5px 11px; font-size: 13px; }
+
+    /* ── CARDS ── */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); overflow: hidden; }
+    .card-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+    .card-title { font-size: 15px; font-weight: 600; color: var(--text-1); }
+    .card-meta { font-size: 13px; color: var(--text-2); }
+
+    /* ── TABLE ── */
+    .tbl-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th { font-size: 11px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: .06em; padding: 10px 16px; text-align: left; background: var(--page-bg); border-bottom: 1px solid var(--border); white-space: nowrap; }
+    tbody td { font-size: 14px; color: var(--text-1); padding: 13px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: #f8fafc; }
+    .td-mono { font-family: 'Inter', monospace; font-size: 13px; color: var(--text-2); }
+    .td-strong { font-weight: 600; }
+    .td-truncate { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* ── BADGES ── */
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .badge-green  { background: var(--green-lt);  color: #3a5a00; }
+    .badge-green::before  { background: var(--green-dk); }
+    .badge-orange { background: var(--orange-lt); color: #9a3412; }
+    .badge-orange::before { background: var(--orange); }
+    .badge-gray   { background: var(--page-bg);   color: var(--text-2); }
+    .badge-gray::before   { background: var(--text-3); }
+    .badge-red    { background: var(--red-lt);    color: var(--red); }
+    .badge-red::before    { background: var(--red); }
+
+    /* ── TABS ── */
+    .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+    .tab-btn { padding: 10px 20px; font-size: 14px; font-weight: 500; color: var(--text-2); background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-family: 'Inter', sans-serif; transition: color .12s, border-color .12s; margin-bottom: -1px; }
+    .tab-btn:hover { color: var(--text-1); }
+    .tab-btn.active { color: var(--orange); border-bottom-color: var(--orange); font-weight: 600; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── TOGGLE ── */
+    .toggle { position: relative; width: 44px; height: 26px; flex-shrink: 0; display: inline-block; }
+    .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-track { position: absolute; inset: 0; border-radius: 13px; background: var(--border); cursor: pointer; transition: background .2s; }
+    .toggle input:checked + .toggle-track { background: var(--green); }
+    .toggle-thumb { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.3); transition: transform .2s; pointer-events: none; }
+    .toggle input:checked ~ .toggle-thumb { transform: translateX(18px); }
+
+    /* ── ICON ACTION BUTTONS ── */
+    .icon-action { width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: var(--text-2); transition: all .12s; }
+    .icon-action svg { width: 14px; height: 14px; stroke-width: 2; }
+    .icon-action.danger:hover { background: var(--red-lt); color: var(--red); border-color: var(--red); }
+    .icon-action:hover { background: var(--page-bg); }
+    .actions-cell { display: flex; gap: 6px; align-items: center; }
+
+    /* ── FORM ELEMENTS ── */
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 13px; font-weight: 600; color: var(--text-1); margin-bottom: 6px; }
+    .form-label .req { color: var(--red); margin-left: 2px; }
+    .form-control { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--r); font-size: 14px; font-family: 'Inter', sans-serif; color: var(--text-1); background: var(--surface); transition: border-color .15s, box-shadow .15s; }
+    .form-control:focus { outline: none; border-color: var(--orange); box-shadow: 0 0 0 3px rgba(236,114,41,.12); }
+    textarea.form-control { resize: vertical; min-height: 90px; }
+    select.form-control { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; background-size: 16px; padding-right: 34px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-hint { font-size: 12px; color: var(--text-3); margin-top: 4px; }
+    .toggle-row { display: flex; align-items: center; gap: 12px; }
+    .toggle-label { font-size: 14px; color: var(--text-1); }
+
+    /* ── MODAL ── */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 400; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .modal-backdrop[hidden] { display: none; }
+    .modal { background: var(--surface); border-radius: var(--r-lg); box-shadow: 0 20px 60px rgba(0,0,0,.2); width: 100%; max-width: 540px; max-height: calc(100vh - 40px); display: flex; flex-direction: column; }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .modal-title { font-size: 16px; font-weight: 700; color: var(--text-1); }
+    .modal-close { width: 30px; height: 30px; border-radius: 6px; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-3); font-size: 18px; transition: background .12s, color .12s; }
+    .modal-close:hover { background: var(--page-bg); color: var(--text-1); }
+    .modal-body { padding: 22px; overflow-y: auto; flex: 1; }
+    .modal-footer { padding: 16px 22px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; flex-shrink: 0; }
+
+    /* ── STAR RATING ── */
+    .stars { color: #f59e0b; letter-spacing: 1px; }
+
+    /* ── BLAST EMAIL ── */
+    .email-section-title { font-size: 13px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; }
+    .checkbox-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+    .checkbox-row { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-1); }
+    .checkbox-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--orange); cursor: pointer; }
+    .multi-select { width: 100%; min-height: 90px; border: 1px solid var(--border); border-radius: var(--r); font-size: 14px; font-family: 'Inter', sans-serif; color: var(--text-1); padding: 4px; }
+    .multi-select:focus { outline: none; border-color: var(--orange); box-shadow: 0 0 0 3px rgba(236,114,41,.12); }
+    .email-card-body { padding: 22px; }
+    .email-divider { height: 1px; background: var(--border); margin: 20px 0; }
+    .email-footer { padding: 16px 22px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+
+    /* ── PREVIEW EMAIL ── */
+    .email-preview-wrap { border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; }
+    .email-preview-header { background: var(--page-bg); padding: 14px 18px; border-bottom: 1px solid var(--border); }
+    .email-preview-meta { font-size: 13px; color: var(--text-2); line-height: 1.8; }
+    .email-preview-meta strong { color: var(--text-1); }
+    .email-preview-body { padding: 20px 18px; font-size: 14px; line-height: 1.7; color: var(--text-1); min-height: 120px; }
+
+    /* ── FAQ DRAG & DROP ── */
+    .drag-handle-cell { width: 32px; padding: 0 8px !important; text-align: center; }
+    .drag-handle { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; color: var(--text-3); cursor: grab; border-radius: 4px; transition: color .12s, background .12s; }
+    .drag-handle:hover { color: var(--text-2); background: var(--page-bg); }
+    .drag-handle:active { cursor: grabbing; }
+    .faq-row.dragging { opacity: .4; }
+    .faq-row.drag-over-top td { box-shadow: inset 0 3px 0 var(--orange); }
+    .faq-row.drag-over-bottom td { box-shadow: inset 0 -3px 0 var(--orange); }
+
+    /* ── UPLOAD DROPZONE ── */
+    .upload-dropzone { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; border:2px dashed var(--border); border-radius:var(--r); padding:32px 20px; cursor:pointer; transition:border-color .15s, background .15s; text-align:center; }
+    .upload-dropzone:hover, .upload-dropzone.drag-over { border-color:var(--text-2); background:var(--page-bg); }
+    .upload-icon { width:36px; height:36px; color:var(--text-3); }
+    .upload-primary { font-size:14px; font-weight:600; color:var(--text-2); }
+    .upload-secondary { font-size:12px; color:var(--text-3); max-width:240px; line-height:1.5; }
+    .upload-current-file { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-3); margin-top:12px; }
+    .upload-current-file span { color:var(--text-2); font-weight:500; }
+    .upload-success { border-color:var(--green-dk) !important; background:var(--green-lt) !important; }
+    .upload-success .upload-icon { color:var(--green-dk); }
+    .upload-success .upload-primary { color:var(--green-dk); }
+
+    .ql-toolbar { border-color: var(--border) !important; }
+    .ql-container { border-color: var(--border) !important; font-family: 'Inter', sans-serif !important; }
+  
+    /* ── MOBILE HAMBURGER ── */
+    .hamburger{display:none;width:36px;height:36px;border:none;background:none;cursor:pointer;color:var(--text-1);align-items:center;justify-content:center;flex-shrink:0;border-radius:var(--r);padding:0;}
+    .hamburger:hover{background:var(--page-bg);}
+    .search-btn-mobile{display:none;width:36px;height:36px;border:none;background:none;cursor:pointer;color:var(--text-2);align-items:center;justify-content:center;flex-shrink:0;border-radius:var(--r);padding:0;}
+    .search-btn-mobile:hover{background:var(--page-bg);}
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:99;}
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:900px){
+      body{overflow-x:hidden;}
+      .main{min-width:0;}
+      .sidebar{transform:translateX(-100%);transition:transform .25s ease;z-index:100;}
+      .sidebar.mobile-open{transform:translateX(0);}
+      .sidebar-overlay.mobile-open{display:block;}
+      .main{margin-left:0!important;}
+      .hamburger{display:flex;}
+      .topbar{padding:0 14px;}
+      .content{padding:16px 14px 32px;}
+      .stats-grid{grid-template-columns:1fr!important;}
+      .grid-2{grid-template-columns:1fr!important;}
+      .page-header{flex-direction:column;gap:12px;align-items:flex-start;}
+      .page-header>div:last-child{align-self:flex-start;}
+      .search-box input{width:120px;}
+      .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+      .modal-overlay > div, .modal-overlay > .modal{max-width:calc(100vw - 32px)!important;width:100%!important;margin:0 16px;}
+      .modal{max-width:calc(100vw - 32px)!important;}
+      /* ── STACKED TABLE CARDS ── */
+      .tbl-wrap table{min-width:0;}
+      .tbl-wrap thead{display:none;}
+      .tbl-wrap tr{display:block;border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;padding:4px 0;background:var(--surface);}
+      .tbl-wrap td{display:flex;justify-content:space-between;align-items:flex-start;border:none!important;background:transparent!important;padding:5px 12px;font-size:13px;gap:8px;border-bottom:1px solid var(--page-bg)!important;}
+      .tbl-wrap tr td:last-child{border-bottom:none!important;}
+      .tbl-wrap td::before{content:attr(data-label);font-weight:600;font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.03em;flex-shrink:0;min-width:95px;padding-top:2px;}
+      .tbl-wrap td[data-label=""]{display:none;}
+      .tbl-wrap tr.expand-row,.tbl-wrap tr.school-expand-row{display:none;}
+      .tbl-wrap tfoot tr{display:block;border-top:2px solid var(--border);padding:8px 12px;font-weight:700;}
+      .tbl-wrap tfoot td{border-bottom:none!important;background:transparent!important;}
+    }
+    @media(max-width:520px){
+      .search-box{display:none;}
+      .search-btn-mobile{display:flex;}
+      .topbar-left{display:flex;align-items:center;gap:12px;min-width:0;}
+    .topbar-right{gap:6px;}
+      .stats-grid{grid-template-columns:1fr!important;}
+      .card-head{flex-direction:column;align-items:flex-start;gap:8px;}
+    }
+  </style>
+</head>
+<body>
+
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
+<!-- ── SIDEBAR ── -->
+<div class="sidebar-overlay"></div>
+
+<aside class="sidebar" role="navigation" aria-label="Admin navigation">
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-box">
+      <img src="lunchbox-logo-horiz.png" alt="Lunch Box Program" width="148">
+    </div>
+  </div>
+
+  <nav class="sidebar-nav" aria-label="Primary">
+    <div class="nav-group">
+      <div class="nav-group-label" aria-hidden="true">Main</div>
+      <a href="index.html" class="nav-link">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a href="meals-menus.html" class="nav-link">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Meals &amp; Menus
+      </a>
+      <a href="food-schedule.html" class="nav-link">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path stroke-linecap="round" d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Food Schedule
+      </a>
+      <a href="schools.html" class="nav-link">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21V9l9-6 9 6v12M9 21V12h6v9"/></svg>
+        Schools &amp; Teachers
+      </a>
+      <a href="parents.html" class="nav-link">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m4-4a4 4 0 100-8 4 4 0 000 8z"/></svg>
+        Parents &amp; Students
+        
+      </a>
+      <a href="reports.html" class="nav-link">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        Reports
+      </a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-label" aria-hidden="true">System</div>
+      <a href="settings.html" class="nav-link active" aria-current="page">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+        Settings
+      </a>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <a href="#" class="nav-link">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h5a2 2 0 012 2v1"/></svg>
+      Log Out
+    </a>
+  </div>
+</aside>
+
+<!-- ── MAIN ── -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <header class="topbar" role="banner">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleMobileNav()" aria-label="Open navigation" aria-expanded="false"><svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="index.html">Dashboard</a>
+      <span class="breadcrumb-sep" aria-hidden="true">/</span>
+      <span class="breadcrumb-current" aria-current="page">Settings</span>
+    </nav>
+    </div>
+    <div class="topbar-right">
+      <div class="search-box" role="search">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+        <input type="search" placeholder="Search…" aria-label="Search admin">
+      </div>
+      <button class="search-btn-mobile" aria-label="Search" onclick="var sb=this.closest('header').querySelector('.search-box');sb.style.display='flex';sb.querySelector('input').focus();this.style.display='none';"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/></svg></button>
+      <div class="user-menu">
+        <div class="user-chip" role="button" aria-label="Admin user menu" tabindex="0" onclick="toggleUserMenu()" onkeydown="if(event.key==='Enter'||event.key===' ')toggleUserMenu()">
+          <div class="avatar" aria-hidden="true">AD</div>
+          <span>Admin</span>
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px;color:#94a3b8;" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </div>
+        <div class="user-dropdown" id="user-dropdown">
+
+          <a href="#"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h5a2 2 0 012 2v1"/></svg>Log Out</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENT -->
+  <main id="main-content" class="content" role="main">
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Settings</h1>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div role="tablist" aria-label="Settings sections" class="tabs">
+      <button role="tab" class="tab-btn active" id="tab-faqs" aria-selected="true" aria-controls="panel-faqs" onclick="switchTab('faqs')">FAQs</button>
+      <button role="tab" class="tab-btn" id="tab-testimonials" aria-selected="false" aria-controls="panel-testimonials" onclick="switchTab('testimonials')">Testimonials</button>
+      <button role="tab" class="tab-btn" id="tab-notifications" aria-selected="false" aria-controls="panel-notifications" onclick="switchTab('notifications')">Parent Notifications</button>
+      <button role="tab" class="tab-btn" id="tab-upload" aria-selected="false" aria-controls="panel-upload" onclick="switchTab('upload')">Upload Menu</button>
+      <button role="tab" class="tab-btn" id="tab-blast" aria-selected="false" aria-controls="panel-blast" onclick="switchTab('blast')">Blast Email</button>
+    </div>
+
+    <!-- ── TAB 1: FAQs ── -->
+    <div role="tabpanel" id="panel-faqs" aria-labelledby="tab-faqs" class="tab-panel active">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Frequently Asked Questions</div>
+            <div class="card-meta">Manage the FAQ content shown to parents</div>
+          </div>
+          <button class="btn btn-primary" onclick="openAddFaqModal()" aria-haspopup="dialog">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            Add FAQ
+          </button>
+        </div>
+        <div class="tbl-wrap">
+          <table aria-label="Frequently asked questions">
+            <thead>
+              <tr>
+                <th scope="col" style="width:32px;" aria-label="Drag to reorder"></th>
+                <th scope="col">Question</th>
+                <th scope="col">Answer</th>
+                <th scope="col" style="text-align:center;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="faq-tbody">
+              <tr class="faq-row" draggable="true">
+                <td class="drag-handle-cell" data-label=""><span class="drag-handle" title="Drag to reorder"><svg viewBox="0 0 10 16" fill="currentColor" width="10" height="16" aria-hidden="true"><circle cx="3" cy="2.5" r="1.5"/><circle cx="7" cy="2.5" r="1.5"/><circle cx="3" cy="8" r="1.5"/><circle cx="7" cy="8" r="1.5"/><circle cx="3" cy="13.5" r="1.5"/><circle cx="7" cy="13.5" r="1.5"/></svg></span></td>
+                <td class="td-strong" data-label="Question">How do I place an order?</td>
+                <td class="td-truncate" style="max-width:280px;" data-label="Answer">Log in to your parent account, navigate to the Order section, select your child's school, and choose from the available menu items. Orders can be placed up to the weekly cutoff time.</td>
+                <td style="text-align:center;" data-label="Actions"><div class="actions-cell" style="justify-content:center;"><button class="icon-action" aria-label="Edit FAQ" onclick="openEditFaqModal()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button><button class="icon-action danger" aria-label="Delete FAQ"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button></div></td>
+              </tr>
+              <tr class="faq-row" draggable="true">
+                <td class="drag-handle-cell" data-label=""><span class="drag-handle" title="Drag to reorder"><svg viewBox="0 0 10 16" fill="currentColor" width="10" height="16" aria-hidden="true"><circle cx="3" cy="2.5" r="1.5"/><circle cx="7" cy="2.5" r="1.5"/><circle cx="3" cy="8" r="1.5"/><circle cx="7" cy="8" r="1.5"/><circle cx="3" cy="13.5" r="1.5"/><circle cx="7" cy="13.5" r="1.5"/></svg></span></td>
+                <td class="td-strong" data-label="Question">What is the order cutoff time?</td>
+                <td class="td-truncate" style="max-width:280px;" data-label="Answer">Orders must be submitted by 8:00 PM on Sunday for the following week's lunches. Late orders cannot be accommodated as food is prepared fresh each morning.</td>
+                <td style="text-align:center;" data-label="Actions"><div class="actions-cell" style="justify-content:center;"><button class="icon-action" aria-label="Edit FAQ" onclick="openEditFaqModal()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button><button class="icon-action danger" aria-label="Delete FAQ"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button></div></td>
+              </tr>
+              <tr class="faq-row" draggable="true">
+                <td class="drag-handle-cell" data-label=""><span class="drag-handle" title="Drag to reorder"><svg viewBox="0 0 10 16" fill="currentColor" width="10" height="16" aria-hidden="true"><circle cx="3" cy="2.5" r="1.5"/><circle cx="7" cy="2.5" r="1.5"/><circle cx="3" cy="8" r="1.5"/><circle cx="7" cy="8" r="1.5"/><circle cx="3" cy="13.5" r="1.5"/><circle cx="7" cy="13.5" r="1.5"/></svg></span></td>
+                <td class="td-strong" data-label="Question">Can I change or cancel an order?</td>
+                <td class="td-truncate" style="max-width:280px;" data-label="Answer">Yes — orders can be modified or canceled up to the Sunday 8:00 PM cutoff. After that time, orders are locked and sent to the kitchen. Please contact us directly for emergencies.</td>
+                <td style="text-align:center;" data-label="Actions"><div class="actions-cell" style="justify-content:center;"><button class="icon-action" aria-label="Edit FAQ" onclick="openEditFaqModal()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button><button class="icon-action danger" aria-label="Delete FAQ"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button></div></td>
+              </tr>
+              <tr class="faq-row" draggable="true">
+                <td class="drag-handle-cell" data-label=""><span class="drag-handle" title="Drag to reorder"><svg viewBox="0 0 10 16" fill="currentColor" width="10" height="16" aria-hidden="true"><circle cx="3" cy="2.5" r="1.5"/><circle cx="7" cy="2.5" r="1.5"/><circle cx="3" cy="8" r="1.5"/><circle cx="7" cy="8" r="1.5"/><circle cx="3" cy="13.5" r="1.5"/><circle cx="7" cy="13.5" r="1.5"/></svg></span></td>
+                <td class="td-strong" data-label="Question">Are allergen-free options available?</td>
+                <td class="td-truncate" style="max-width:280px;" data-label="Answer">We offer gluten-free, nut-free, and dairy-free options on many menu items. Allergen information is displayed on each menu item. Please contact us if your child has severe allergies.</td>
+                <td style="text-align:center;" data-label="Actions"><div class="actions-cell" style="justify-content:center;"><button class="icon-action" aria-label="Edit FAQ" onclick="openEditFaqModal()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button><button class="icon-action danger" aria-label="Delete FAQ"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button></div></td>
+              </tr>
+              <tr class="faq-row" draggable="true">
+                <td class="drag-handle-cell" data-label=""><span class="drag-handle" title="Drag to reorder"><svg viewBox="0 0 10 16" fill="currentColor" width="10" height="16" aria-hidden="true"><circle cx="3" cy="2.5" r="1.5"/><circle cx="7" cy="2.5" r="1.5"/><circle cx="3" cy="8" r="1.5"/><circle cx="7" cy="8" r="1.5"/><circle cx="3" cy="13.5" r="1.5"/><circle cx="7" cy="13.5" r="1.5"/></svg></span></td>
+                <td class="td-strong" data-label="Question">How is payment processed?</td>
+                <td class="td-truncate" style="max-width:280px;" data-label="Answer">We accept all major credit and debit cards via our secure payment portal. Payments are charged when your order is confirmed. We do not store card details on our servers.</td>
+                <td style="text-align:center;" data-label="Actions"><div class="actions-cell" style="justify-content:center;"><button class="icon-action" aria-label="Edit FAQ" onclick="openEditFaqModal()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button><button class="icon-action danger" aria-label="Delete FAQ"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button></div></td>
+              </tr>
+              <tr class="faq-row" draggable="true">
+                <td class="drag-handle-cell" data-label=""><span class="drag-handle" title="Drag to reorder"><svg viewBox="0 0 10 16" fill="currentColor" width="10" height="16" aria-hidden="true"><circle cx="3" cy="2.5" r="1.5"/><circle cx="7" cy="2.5" r="1.5"/><circle cx="3" cy="8" r="1.5"/><circle cx="7" cy="8" r="1.5"/><circle cx="3" cy="13.5" r="1.5"/><circle cx="7" cy="13.5" r="1.5"/></svg></span></td>
+                <td class="td-strong" data-label="Question">What happens on school holidays?</td>
+                <td class="td-truncate" style="max-width:280px;" data-label="Answer">No lunches are delivered on school holidays or snow days. Our system automatically blocks ordering for those days. If your school has an unexpected closure, please call us before 7:00 AM for a credit.</td>
+                <td style="text-align:center;" data-label="Actions"><div class="actions-cell" style="justify-content:center;"><button class="icon-action" aria-label="Edit FAQ" onclick="openEditFaqModal()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button><button class="icon-action danger" aria-label="Delete FAQ"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB 2: Testimonials ── -->
+    <div role="tabpanel" id="panel-testimonials" aria-labelledby="tab-testimonials" class="tab-panel">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Customer Testimonials</div>
+            <div class="card-meta">Reviews and quotes shown on the public website</div>
+          </div>
+          <button class="btn btn-primary" onclick="openModal('testimonial-modal')" aria-haspopup="dialog">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            Add Testimonial
+          </button>
+        </div>
+        <div class="tbl-wrap">
+          <table aria-label="Customer testimonials">
+            <thead>
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">School</th>
+                <th scope="col">Quote</th>
+                <th scope="col" style="text-align:center;">Rating</th>
+                <th scope="col" style="text-align:center;">Active</th>
+                <th scope="col" style="text-align:center;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="td-strong" data-label="Name">Jennifer R.</td>
+                <td data-label="School">Maple Ridge Elementary</td>
+                <td class="td-truncate" style="max-width:260px;" data-label="Quote">My kids absolutely love the Lunch Box Program! The food is fresh, the portions are generous, and ordering online is a breeze. Highly recommend to…</td>
+                <td style="text-align:center;" data-label="Rating"><span class="stars" aria-label="5 stars">★★★★★</span></td>
+                <td style="text-align:center;" data-label="Active">
+                  <label class="toggle" aria-label="Active status">
+                    <input type="checkbox" checked>
+                    <span class="toggle-track" aria-hidden="true"></span>
+                    <span class="toggle-thumb" aria-hidden="true"></span>
+                  </label>
+                </td>
+                <td style="text-align:center;" data-label="Actions">
+                  <div class="actions-cell" style="justify-content:center;">
+                    <button class="icon-action" aria-label="Edit testimonial" onclick="openModal('testimonial-modal')">
+                      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    </button>
+                    <button class="icon-action danger" aria-label="Delete testimonial">
+                      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td class="td-strong" data-label="Name">Marcus T.</td>
+                <td data-label="School">Sunflower Academy</td>
+                <td class="td-truncate" style="max-width:260px;" data-label="Quote">The variety is fantastic — my daughter never complains about lunch anymore. I love that I can see exactly what she's eating each day and it…</td>
+                <td style="text-align:center;" data-label="Rating"><span class="stars" aria-label="5 stars">★★★★★</span></td>
+                <td style="text-align:center;" data-label="Active">
+                  <label class="toggle" aria-label="Active status">
+                    <input type="checkbox" checked>
+                    <span class="toggle-track" aria-hidden="true"></span>
+                    <span class="toggle-thumb" aria-hidden="true"></span>
+                  </label>
+                </td>
+                <td style="text-align:center;" data-label="Actions">
+                  <div class="actions-cell" style="justify-content:center;">
+                    <button class="icon-action" aria-label="Edit testimonial" onclick="openModal('testimonial-modal')">
+                      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    </button>
+                    <button class="icon-action danger" aria-label="Delete testimonial">
+                      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td class="td-strong" data-label="Name">Priya S.</td>
+                <td data-label="School">Cedar Park Academy</td>
+                <td class="td-truncate" style="max-width:260px;" data-label="Quote">Ordering is so easy and the customer service team is incredibly responsive. When I had an issue with a billing charge they resolved it same…</td>
+                <td style="text-align:center;" data-label="Rating"><span class="stars" aria-label="4 stars">★★★★☆</span></td>
+                <td style="text-align:center;" data-label="Active">
+                  <label class="toggle" aria-label="Active status">
+                    <input type="checkbox" checked>
+                    <span class="toggle-track" aria-hidden="true"></span>
+                    <span class="toggle-thumb" aria-hidden="true"></span>
+                  </label>
+                </td>
+                <td style="text-align:center;" data-label="Actions">
+                  <div class="actions-cell" style="justify-content:center;">
+                    <button class="icon-action" aria-label="Edit testimonial" onclick="openModal('testimonial-modal')">
+                      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    </button>
+                    <button class="icon-action danger" aria-label="Delete testimonial">
+                      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td class="td-strong" data-label="Name">David K.</td>
+                <td data-label="School">Riverdale Primary</td>
+                <td class="td-truncate" style="max-width:260px;" data-label="Quote">As a busy dad of three, the Lunch Box Program has been a lifesaver. One weekly order covers all three kids and delivery is always on time…</td>
+                <td style="text-align:center;" data-label="Rating"><span class="stars" aria-label="5 stars">★★★★★</span></td>
+                <td style="text-align:center;" data-label="Active">
+                  <label class="toggle" aria-label="Active status">
+                    <input type="checkbox" checked>
+                    <span class="toggle-track" aria-hidden="true"></span>
+                    <span class="toggle-thumb" aria-hidden="true"></span>
+                  </label>
+                </td>
+                <td style="text-align:center;" data-label="Actions">
+                  <div class="actions-cell" style="justify-content:center;">
+                    <button class="icon-action" aria-label="Edit testimonial" onclick="openModal('testimonial-modal')">
+                      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    </button>
+                    <button class="icon-action danger" aria-label="Delete testimonial">
+                      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td class="td-strong" data-label="Name">Amanda L.</td>
+                <td data-label="School">Westview Elementary</td>
+                <td class="td-truncate" style="max-width:260px;" data-label="Quote">The quality has really improved this year. My son used to pick at his food but now he eats every bite. The new pasta dishes are a huge hit…</td>
+                <td style="text-align:center;" data-label="Rating"><span class="stars" aria-label="4 stars">★★★★☆</span></td>
+                <td style="text-align:center;" data-label="Active">
+                  <label class="toggle" aria-label="Active status">
+                    <input type="checkbox">
+                    <span class="toggle-track" aria-hidden="true"></span>
+                    <span class="toggle-thumb" aria-hidden="true"></span>
+                  </label>
+                </td>
+                <td style="text-align:center;" data-label="Actions">
+                  <div class="actions-cell" style="justify-content:center;">
+                    <button class="icon-action" aria-label="Edit testimonial" onclick="openModal('testimonial-modal')">
+                      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    </button>
+                    <button class="icon-action danger" aria-label="Delete testimonial">
+                      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB 3: Parent Notifications ── -->
+    <div role="tabpanel" id="panel-notifications" aria-labelledby="tab-notifications" class="tab-panel">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Parent Notifications</div>
+            <div class="card-meta">Banner messages shown to parents during a set date range</div>
+          </div>
+          <button class="btn btn-primary" onclick="openNotificationModal()" aria-haspopup="dialog">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            Add Notification
+          </button>
+        </div>
+        <div class="tbl-wrap">
+          <table aria-label="Parent notifications">
+            <thead>
+              <tr>
+                <th scope="col">Message</th>
+                <th scope="col">Start Date</th>
+                <th scope="col">End Date</th>
+                <th scope="col">Button</th>
+                <th scope="col" style="text-align:center;">Status</th>
+                <th scope="col" style="text-align:center;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="td-truncate" style="max-width:300px;" data-label="Message">Summer ordering closes July 15th. All orders for the last week of school must be placed by Sunday, June 28th.</td>
+                <td style="white-space:nowrap;font-size:13px;color:var(--text-2);" data-label="Start Date">Jun 1, 2026</td>
+                <td style="white-space:nowrap;font-size:13px;color:var(--text-2);" data-label="End Date">Jun 30, 2026</td>
+                <td style="font-size:13px;color:var(--text-3);" data-label="Button">—</td>
+                <td style="text-align:center;" data-label="Status"><span class="badge badge-green">Active</span></td>
+                <td style="text-align:center;" data-label="Actions">
+                  <div class="actions-cell" style="justify-content:center;">
+                    <button class="icon-action" aria-label="Edit notification" onclick="openNotificationModal({start:'2026-06-01',end:'2026-06-30',message:'Summer ordering closes July 15th. All orders for the last week of school must be placed by Sunday, June 28th.'})">
+                      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    </button>
+                    <button class="icon-action danger" aria-label="Delete notification">
+                      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td class="td-truncate" style="max-width:300px;" data-label="Message">New school year registration is now open! Sign up early to secure your child's place in the program for the 2026–27 school year.</td>
+                <td style="white-space:nowrap;font-size:13px;color:var(--text-2);" data-label="Start Date">Aug 1, 2026</td>
+                <td style="white-space:nowrap;font-size:13px;color:var(--text-2);" data-label="End Date">Sep 15, 2026</td>
+                <td data-label="Button">
+                  <div style="display:flex;align-items:center;gap:5px;">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:13px;height:13px;color:var(--text-3);flex-shrink:0;" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                    <span style="font-size:13px;color:var(--text-2);">Register Now</span>
+                  </div>
+                </td>
+                <td style="text-align:center;" data-label="Status"><span class="badge badge-orange">Upcoming</span></td>
+                <td style="text-align:center;" data-label="Actions">
+                  <div class="actions-cell" style="justify-content:center;">
+                    <button class="icon-action" aria-label="Edit notification" onclick="openNotificationModal({start:'2026-08-01',end:'2026-09-15',message:'New school year registration is now open! Sign up early to secure your child\'s place in the program for the 2026–27 school year.',btnText:'Register Now',btnUrl:'https://lunchboxprogram.com/register'})">
+                      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    </button>
+                    <button class="icon-action danger" aria-label="Delete notification">
+                      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB 4: Upload Menu ── -->
+    <div role="tabpanel" id="panel-upload" aria-labelledby="tab-upload" class="tab-panel">
+      <div>
+
+        <!-- Daily Options Menu PDF -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Daily Options Menu</div>
+          </div>
+          <div style="padding:20px;">
+            <label for="upload-menu-pdf" class="upload-dropzone" id="dropzone-menu" aria-label="Drop PDF here or click to upload Daily Options Menu PDF">
+              <input type="file" id="upload-menu-pdf" accept=".pdf" style="display:none;" onchange="handleFileSelect('menu-pdf',this)">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" class="upload-icon" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              <span class="upload-primary">Drop PDF here or click to upload</span>
+              <span class="upload-secondary">Replaces the downloadable Daily Options Menu PDF on the website</span>
+            </label>
+            <div class="upload-current-file" id="current-menu-pdf">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" style="width:13px;height:13px;flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+              Current file: <span>delivery-menu-may2026.pdf</span>
+            </div>
+            <button class="btn btn-secondary" style="width:100%;justify-content:center;margin-top:10px;" onclick="document.getElementById('upload-menu-pdf').click()">Replace Daily Options Menu PDF</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── TAB 5: Blast Email ── -->
+    <div role="tabpanel" id="panel-blast" aria-labelledby="tab-blast" class="tab-panel">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Send Blast Email</div>
+            <div class="card-meta">Compose and send an email to parents across all or selected schools</div>
+          </div>
+        </div>
+        <div class="email-card-body">
+
+          <!-- Recipients -->
+          <div class="form-group">
+            <div class="email-section-title">Recipients</div>
+            <div class="checkbox-group" role="group" aria-label="Send to">
+              <label class="checkbox-row">
+                <input type="checkbox" id="chk-all" checked onchange="toggleSchoolSelect()">
+                All Parents
+              </label>
+              <label class="checkbox-row">
+                <input type="checkbox" id="chk-active">
+                Active Schools Only
+              </label>
+            </div>
+            <label for="school-select" class="form-label" style="margin-top:10px;">Or select specific schools:</label>
+            <select id="school-select" class="multi-select" multiple aria-label="Select specific schools">
+              <option>Maple Ridge Elementary</option>
+              <option>Sunflower Academy</option>
+              <option>Cedar Park Academy</option>
+              <option>Riverdale Primary</option>
+              <option>Westview Elementary</option>
+              <option>Northside Learning Center</option>
+            </select>
+            <div class="form-hint">Hold Ctrl / Cmd to select multiple schools.</div>
+          </div>
+
+          <div class="email-divider"></div>
+
+          <!-- Subject -->
+          <div class="form-group">
+            <label for="email-subject" class="form-label">Subject Line <span class="req" aria-hidden="true">*</span></label>
+            <input type="text" id="email-subject" class="form-control" placeholder="e.g. May Menu Update — New Items Added!" value="">
+          </div>
+
+          <!-- Body -->
+          <div class="form-group">
+            <div class="form-label" id="email-body-label">Email Body <span class="req" aria-hidden="true">*</span></div>
+            <div id="email-editor" style="min-height:220px;" aria-labelledby="email-body-label" role="textbox" aria-multiline="true"></div>
+          </div>
+
+          <!-- Attachment -->
+          <div class="form-group">
+            <div class="form-label">Attachment <span style="font-weight:400;color:var(--text-muted);">(optional)</span></div>
+            <label id="attach-dropzone" for="attach-input" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:2px dashed var(--border);border-radius:8px;cursor:pointer;transition:border-color .15s,background .15s;" ondragover="event.preventDefault();this.style.borderColor='var(--primary)';this.style.background='var(--primary-lt, #f0f9ff)';" ondragleave="this.style.borderColor='';this.style.background='';" ondrop="handleAttachDrop(event)">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="flex-shrink:0;color:var(--text-muted);" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.586-6.586a4 4 0 00-5.656-5.656L5.757 10.757a6 6 0 008.486 8.486L19 14.5"/></svg>
+              <div>
+                <span id="attach-label-text" style="font-size:13px;color:var(--text-2);">Choose a file or drag and drop here</span>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">PDF, Word, Excel, PNG, JPG — max 10 MB</div>
+              </div>
+              <input type="file" id="attach-input" style="display:none;" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" onchange="handleAttachSelect(this)">
+              <button type="button" id="attach-clear-btn" onclick="clearAttachment(event)" style="display:none;margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:18px;line-height:1;" aria-label="Remove attachment">&times;</button>
+            </label>
+            <div id="attach-chip" style="display:none;margin-top:8px;"></div>
+          </div>
+
+        </div>
+        <div class="email-footer">
+          <button class="btn btn-secondary" onclick="openEmailPreview()" aria-haspopup="dialog">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            Preview
+          </button>
+          <button class="btn btn-primary" onclick="handleSendEmail()">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            Send Email
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ════════════════════════════════════════
+     MODAL: Add / Edit FAQ
+     ════════════════════════════════════════ -->
+<div id="faq-modal" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="faq-modal-title">
+  <div class="modal" role="document">
+    <div class="modal-header">
+      <h2 class="modal-title" id="faq-modal-title">Add FAQ</h2>
+      <button class="modal-close" onclick="closeModal('faq-modal')" aria-label="Close modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="faq-question" class="form-label">Question <span class="req" aria-hidden="true">*</span></label>
+        <textarea id="faq-question" class="form-control" rows="2" placeholder="Enter the question parents commonly ask…"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="faq-answer" class="form-label">Answer <span class="req" aria-hidden="true">*</span></label>
+        <textarea id="faq-answer" class="form-control" rows="4" placeholder="Provide a clear, helpful answer…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('faq-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveFaq()">Save FAQ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     MODAL: Add / Edit Testimonial
+     ════════════════════════════════════════ -->
+<div id="testimonial-modal" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="testimonial-modal-title">
+  <div class="modal" role="document">
+    <div class="modal-header">
+      <h2 class="modal-title" id="testimonial-modal-title">Add Testimonial</h2>
+      <button class="modal-close" onclick="closeModal('testimonial-modal')" aria-label="Close modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="test-name" class="form-label">Name <span class="req" aria-hidden="true">*</span></label>
+        <input type="text" id="test-name" class="form-control" placeholder="e.g. Jennifer R.">
+      </div>
+      <div class="form-group">
+        <label for="test-school" class="form-label">School</label>
+        <select id="test-school" class="form-control">
+          <option value="">— Select school —</option>
+          <option>Maple Ridge Elementary</option>
+          <option>Sunflower Academy</option>
+          <option>Cedar Park Academy</option>
+          <option>Riverdale Primary</option>
+          <option>Westview Elementary</option>
+          <option>Northside Learning Center</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="test-quote" class="form-label">Quote <span class="req" aria-hidden="true">*</span></label>
+        <textarea id="test-quote" class="form-control" rows="4" placeholder="Enter the customer's testimonial…"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:0;">
+          <label for="test-rating" class="form-label">Rating</label>
+          <select id="test-rating" class="form-control">
+            <option value="5">★★★★★ — 5 Stars</option>
+            <option value="4">★★★★☆ — 4 Stars</option>
+            <option value="3">★★★☆☆ — 3 Stars</option>
+            <option value="2">★★☆☆☆ — 2 Stars</option>
+            <option value="1">★☆☆☆☆ — 1 Star</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <div class="form-label">Active</div>
+          <div class="toggle-row" style="margin-top:8px;">
+            <label class="toggle" aria-label="Active">
+              <input type="checkbox" id="test-active" checked>
+              <span class="toggle-track" aria-hidden="true"></span>
+              <span class="toggle-thumb" aria-hidden="true"></span>
+            </label>
+            <span class="toggle-label" id="test-active-label">Yes — shown on website</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('testimonial-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTestimonial()">Save Testimonial</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     MODAL: Add / Edit Parent Notification
+     ════════════════════════════════════════ -->
+<div id="notification-modal" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="notif-modal-title">
+  <div class="modal" style="max-width:560px;" role="document">
+    <div class="modal-header">
+      <h2 class="modal-title" id="notif-modal-title">Add Notification</h2>
+      <button class="modal-close" onclick="closeModal('notification-modal')" aria-label="Close modal">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Date range -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="notif-start" class="form-label">Start Date <span class="req" aria-hidden="true">*</span></label>
+          <input type="date" id="notif-start" class="form-control">
+          <div class="form-hint">Notification appears from this date.</div>
+        </div>
+        <div class="form-group">
+          <label for="notif-end" class="form-label">End Date <span class="req" aria-hidden="true">*</span></label>
+          <input type="date" id="notif-end" class="form-control">
+          <div class="form-hint">Notification hides after this date.</div>
+        </div>
+      </div>
+
+      <!-- Message -->
+      <div class="form-group">
+        <label for="notif-message" class="form-label">Message <span class="req" aria-hidden="true">*</span></label>
+        <textarea id="notif-message" class="form-control" rows="4" placeholder="Enter the notification message parents will see…"></textarea>
+      </div>
+
+      <!-- Optional button -->
+      <div style="border:1px solid var(--border);border-radius:var(--r);overflow:hidden;">
+        <div style="padding:12px 14px;background:var(--page-bg);display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text-1);">Call-to-Action Button</div>
+            <div style="font-size:12px;color:var(--text-3);margin-top:2px;">Optional — add a button linking parents to a URL</div>
+          </div>
+          <label class="toggle" aria-label="Include a call-to-action button" style="flex-shrink:0;">
+            <input type="checkbox" id="notif-btn-toggle" onchange="toggleNotifButton()">
+            <span class="toggle-track" aria-hidden="true"></span>
+            <span class="toggle-thumb" aria-hidden="true"></span>
+          </label>
+        </div>
+        <div id="notif-btn-fields" style="display:none;padding:14px;border-top:1px solid var(--border);">
+          <div class="form-row" style="margin-bottom:0;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label for="notif-btn-text" class="form-label">Button Label <span class="req" aria-hidden="true">*</span></label>
+              <input type="text" id="notif-btn-text" class="form-control" placeholder="e.g. Register Now">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label for="notif-btn-url" class="form-label">Button URL <span class="req" aria-hidden="true">*</span></label>
+              <input type="url" id="notif-btn-url" class="form-control" placeholder="https://…">
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('notification-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNotification()">Save Notification</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     MODAL: Email Preview
+     ════════════════════════════════════════ -->
+<div id="preview-modal" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="preview-modal-title">
+  <div class="modal" style="max-width:620px;" role="document">
+    <div class="modal-header">
+      <h2 class="modal-title" id="preview-modal-title">Email Preview</h2>
+      <button class="modal-close" onclick="closeModal('preview-modal')" aria-label="Close preview">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="email-preview-wrap">
+        <div class="email-preview-header">
+          <div class="email-preview-meta">
+            <div><strong>From:</strong> Lunch Box Program &lt;noreply@lunchboxprogram.com&gt;</div>
+            <div><strong>To:</strong> <span id="preview-to">All Parents</span></div>
+            <div><strong>Subject:</strong> <span id="preview-subject" style="color:var(--text-1);font-weight:600;">(no subject)</span></div>
+          </div>
+        </div>
+        <div class="email-preview-body" id="preview-body">
+          <p style="color:var(--text-3);font-style:italic;">No content yet — compose your message in the editor.</p>
+        </div>
+      </div>
+      <p style="font-size:12px;color:var(--text-3);margin-top:12px;">This is a simulated preview. Actual email rendering may vary slightly by email client.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('preview-modal')">Close Preview</button>
+      <button class="btn btn-primary" onclick="closeModal('preview-modal'); handleSendEmail();">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        Send Email
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     MODAL: Send Confirmation Toast
+     ════════════════════════════════════════ -->
+<div id="send-toast" hidden role="status" aria-live="polite" style="position:fixed;bottom:28px;right:28px;background:#1e293b;color:#fff;padding:14px 20px;border-radius:var(--r-lg);box-shadow:var(--shadow);font-size:14px;font-weight:500;z-index:600;display:flex;align-items:center;gap:10px;">
+  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:18px;height:18px;color:#6b7280;" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+  Email sent successfully!
+</div>
+
+<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+<script>
+  // ── Quill editor ──
+  var quill = new Quill('#email-editor', { theme: 'snow' });
+
+  // ── Tabs ──
+  function switchTab(name) {
+    document.querySelectorAll('.tab-btn').forEach(function(btn) {
+      var isActive = btn.id === 'tab-' + name;
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+    document.querySelectorAll('.tab-panel').forEach(function(panel) {
+      panel.classList.toggle('active', panel.id === 'panel-' + name);
+    });
+  }
+
+  // ── Modals ──
+  function openAddFaqModal() {
+    document.getElementById('faq-modal-title').textContent = 'Add FAQ';
+    document.getElementById('faq-question').value = '';
+    document.getElementById('faq-answer').value = '';
+    openModal('faq-modal');
+  }
+
+  function openEditFaqModal() {
+    document.getElementById('faq-modal-title').textContent = 'Edit FAQ';
+    openModal('faq-modal');
+  }
+
+  function openModal(id) {
+    var el = document.getElementById(id);
+    el.removeAttribute('hidden');
+    // Focus the first focusable element
+    var first = el.querySelector('button, input, textarea, select, [tabindex]');
+    if (first) setTimeout(function() { first.focus(); }, 50);
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).setAttribute('hidden', '');
+  }
+
+  // Close modals on backdrop click
+  document.querySelectorAll('.modal-backdrop').forEach(function(backdrop) {
+    backdrop.addEventListener('click', function(e) {
+      if (e.target === backdrop) closeModal(backdrop.id);
+    });
+  });
+
+  // Close modals on Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-backdrop:not([hidden])').forEach(function(m) {
+        closeModal(m.id);
+      });
+    }
+  });
+
+  // ── Toggle label updates ──
+document.getElementById('test-active').addEventListener('change', function() {
+    document.getElementById('test-active-label').textContent = this.checked ? 'Yes — shown on website' : 'No — hidden from website';
+  });
+
+  // ── FAQ save (demo) ──
+  function saveFaq() {
+    var q = document.getElementById('faq-question').value.trim();
+    var a = document.getElementById('faq-answer').value.trim();
+    if (!q || !a) {
+      alert('Please fill in both the question and answer fields.');
+      return;
+    }
+    closeModal('faq-modal');
+    // Reset form
+    document.getElementById('faq-question').value = '';
+    document.getElementById('faq-answer').value = '';
+    document.getElementById('faq-active').checked = true;
+  }
+
+  // ── Testimonial save (demo) ──
+  function saveTestimonial() {
+    var name = document.getElementById('test-name').value.trim();
+    var quote = document.getElementById('test-quote').value.trim();
+    if (!name || !quote) {
+      alert('Please fill in the name and quote fields.');
+      return;
+    }
+    closeModal('testimonial-modal');
+    // Reset form
+    document.getElementById('test-name').value = '';
+    document.getElementById('test-school').value = '';
+    document.getElementById('test-quote').value = '';
+    document.getElementById('test-rating').value = '5';
+    document.getElementById('test-active').checked = true;
+  }
+
+  // ── Email "Send To" label helper ──
+  function getRecipientsLabel() {
+    var allParents = document.getElementById('chk-all').checked;
+    var activeOnly = document.getElementById('chk-active').checked;
+    var select = document.getElementById('school-select');
+    var chosen = Array.from(select.selectedOptions).map(function(o) { return o.text; });
+
+    if (allParents) return 'All Parents';
+    if (activeOnly && chosen.length === 0) return 'Active Schools Only';
+    if (chosen.length > 0) return chosen.join(', ');
+    return '(no recipients selected)';
+  }
+
+  // ── Toggle school multi-select when "All Parents" is checked ──
+  function toggleSchoolSelect() {
+    var allChecked = document.getElementById('chk-all').checked;
+    var select = document.getElementById('school-select');
+    select.disabled = allChecked;
+    if (allChecked) {
+      // Clear individual selections
+      Array.from(select.options).forEach(function(o) { o.selected = false; });
+    }
+  }
+
+  // ── Email Preview ──
+  function openEmailPreview() {
+    var subject = document.getElementById('email-subject').value.trim() || '(no subject)';
+    var bodyHtml = quill.root.innerHTML;
+
+    document.getElementById('preview-subject').textContent = subject;
+    document.getElementById('preview-to').textContent = getRecipientsLabel();
+    document.getElementById('preview-body').innerHTML = bodyHtml || '<p style="color:#94a3b8;font-style:italic;">No content yet — compose your message in the editor.</p>';
+    openModal('preview-modal');
+  }
+
+  // ── Send Email (demo) ──
+  /* ── Attachment ── */
+  function handleAttachSelect(input) {
+    if (input.files && input.files[0]) showAttachment(input.files[0]);
+  }
+  function handleAttachDrop(e) {
+    e.preventDefault();
+    document.getElementById('attach-dropzone').style.borderColor = '';
+    document.getElementById('attach-dropzone').style.background  = '';
+    var file = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) {
+      document.getElementById('attach-input').files; // no-op; just show chip
+      showAttachment(file);
+    }
+  }
+  function showAttachment(file) {
+    var kb   = (file.size / 1024).toFixed(0);
+    var size = file.size >= 1048576 ? (file.size/1048576).toFixed(1)+' MB' : kb+' KB';
+    document.getElementById('attach-label-text').textContent = file.name;
+    document.getElementById('attach-clear-btn').style.display = '';
+    var chip = document.getElementById('attach-chip');
+    chip.style.display = 'flex';
+    chip.style.alignItems = 'center';
+    chip.style.gap = '6px';
+    chip.innerHTML =
+      '<svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="flex-shrink:0;color:#6b7280"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.586-6.586a4 4 0 00-5.656-5.656L5.757 10.757a6 6 0 008.486 8.486L19 14.5"/></svg>' +
+      '<span style="font-size:12px;color:var(--text-2);">' + file.name + '</span>' +
+      '<span style="font-size:11px;color:var(--text-muted);">(' + size + ')</span>';
+  }
+  function clearAttachment(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    document.getElementById('attach-input').value = '';
+    document.getElementById('attach-label-text').textContent = 'Choose a file or drag and drop here';
+    document.getElementById('attach-clear-btn').style.display = 'none';
+    document.getElementById('attach-chip').style.display = 'none';
+    document.getElementById('attach-chip').innerHTML = '';
+  }
+
+  function handleSendEmail() {
+    var subject = document.getElementById('email-subject').value.trim();
+    if (!subject) {
+      alert('Please enter a subject line before sending.');
+      return;
+    }
+    var bodyText = quill.getText().trim();
+    if (!bodyText) {
+      alert('Please compose your email body before sending.');
+      return;
+    }
+
+    // Show toast
+    var toast = document.getElementById('send-toast');
+    toast.removeAttribute('hidden');
+    setTimeout(function() { toast.setAttribute('hidden', ''); }, 4000);
+  }
+
+  // ── FAQ drag-and-drop reordering ──
+  (function() {
+    var tbody = document.getElementById('faq-tbody');
+    var dragSrc = null;
+
+    function clearDropIndicators() {
+      tbody.querySelectorAll('.faq-row').forEach(function(r) {
+        r.classList.remove('drag-over-top', 'drag-over-bottom');
+      });
+    }
+
+    function getHalf(e, row) {
+      var rect = row.getBoundingClientRect();
+      return e.clientY < rect.top + rect.height / 2 ? 'top' : 'bottom';
+    }
+
+    tbody.addEventListener('dragstart', function(e) {
+      var row = e.target.closest('.faq-row');
+      if (!row) return;
+      dragSrc = row;
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', ''); // Firefox requires this
+      setTimeout(function() { dragSrc.classList.add('dragging'); }, 0);
+    });
+
+    tbody.addEventListener('dragend', function() {
+      if (dragSrc) dragSrc.classList.remove('dragging');
+      dragSrc = null;
+      clearDropIndicators();
+    });
+
+    tbody.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      var row = e.target.closest('.faq-row');
+      if (!row || row === dragSrc) { clearDropIndicators(); return; }
+      clearDropIndicators();
+      var half = getHalf(e, row);
+      row.classList.add(half === 'top' ? 'drag-over-top' : 'drag-over-bottom');
+    });
+
+    tbody.addEventListener('dragleave', function(e) {
+      if (!e.relatedTarget || !tbody.contains(e.relatedTarget)) clearDropIndicators();
+    });
+
+    tbody.addEventListener('drop', function(e) {
+      e.preventDefault();
+      var row = e.target.closest('.faq-row');
+      if (!row || row === dragSrc) return;
+      var half = getHalf(e, row);
+      if (half === 'top') {
+        tbody.insertBefore(dragSrc, row);
+      } else {
+        tbody.insertBefore(dragSrc, row.nextSibling);
+      }
+      clearDropIndicators();
+    });
+  })();
+
+  // ── Upload Menu: file select handler ──
+  function handleFileSelect(key, input) {
+    if (!input.files || !input.files[0]) return;
+    var file = input.files[0];
+    var dropzoneId = key === 'menu-pdf' ? 'dropzone-menu' : 'dropzone-order';
+    var currentId  = key === 'menu-pdf' ? 'current-menu-pdf' : 'current-order-pdf';
+    var dropzone = document.getElementById(dropzoneId);
+    var currentEl = document.getElementById(currentId);
+
+    // Update dropzone to success state
+    dropzone.classList.add('upload-success');
+    dropzone.querySelector('.upload-primary').textContent = file.name + ' ready to save';
+    dropzone.querySelector('.upload-secondary').textContent = (Math.round(file.size / 1024)) + ' KB — click "Replace" to confirm';
+
+    // Update current file label
+    currentEl.querySelector('span').textContent = file.name;
+  }
+
+  // Drag-and-drop for upload zones
+  document.querySelectorAll('.upload-dropzone').forEach(function(zone) {
+    zone.addEventListener('dragover', function(e) { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', function() { zone.classList.remove('drag-over'); });
+    zone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      var input = zone.querySelector('input[type="file"]');
+      if (e.dataTransfer.files[0]) {
+        // Transfer the dropped file to the input and trigger the change handler
+        var dt = new DataTransfer();
+        dt.items.add(e.dataTransfer.files[0]);
+        input.files = dt.files;
+        input.dispatchEvent(new Event('change'));
+      }
+    });
+  });
+
+  // ── Notification: open modal in add or edit mode ──
+  function openNotificationModal(data) {
+    var isEdit = !!data;
+    document.getElementById('notif-modal-title').textContent = isEdit ? 'Edit Notification' : 'Add Notification';
+
+    // Populate or clear fields
+    document.getElementById('notif-start').value   = isEdit && data.start   ? data.start   : '';
+    document.getElementById('notif-end').value     = isEdit && data.end     ? data.end     : '';
+    document.getElementById('notif-message').value = isEdit && data.message ? data.message : '';
+
+    // CTA button
+    var hasBtnData = isEdit && data.btnText;
+    document.getElementById('notif-btn-toggle').checked = hasBtnData;
+    document.getElementById('notif-btn-text').value = hasBtnData ? data.btnText : '';
+    document.getElementById('notif-btn-url').value  = hasBtnData ? data.btnUrl  : '';
+    document.getElementById('notif-btn-fields').style.display = hasBtnData ? 'block' : 'none';
+
+    openModal('notification-modal');
+  }
+
+  // ── Notification: toggle CTA button fields ──
+  function toggleNotifButton() {
+    var on = document.getElementById('notif-btn-toggle').checked;
+    document.getElementById('notif-btn-fields').style.display = on ? 'block' : 'none';
+    // Clear fields when hiding
+    if (!on) {
+      document.getElementById('notif-btn-text').value = '';
+      document.getElementById('notif-btn-url').value = '';
+    }
+  }
+
+  // ── Notification: save (demo) ──
+  function saveNotification() {
+    var start   = document.getElementById('notif-start').value;
+    var end     = document.getElementById('notif-end').value;
+    var message = document.getElementById('notif-message').value.trim();
+    var hasBtn  = document.getElementById('notif-btn-toggle').checked;
+    var btnText = document.getElementById('notif-btn-text').value.trim();
+    var btnUrl  = document.getElementById('notif-btn-url').value.trim();
+
+    if (!start || !end) {
+      alert('Please set both a start date and an end date.');
+      return;
+    }
+    if (new Date(end) < new Date(start)) {
+      alert('End date must be on or after the start date.');
+      return;
+    }
+    if (!message) {
+      alert('Please enter a notification message.');
+      return;
+    }
+    if (hasBtn && (!btnText || !btnUrl)) {
+      alert('Please fill in both the button label and URL, or turn the button off.');
+      return;
+    }
+
+    closeModal('notification-modal');
+    // Reset form
+    document.getElementById('notif-start').value  = '';
+    document.getElementById('notif-end').value    = '';
+    document.getElementById('notif-message').value = '';
+    document.getElementById('notif-btn-toggle').checked = false;
+    toggleNotifButton();
+  }
+
+  // Run on load
+  toggleSchoolSelect();
+
+  function toggleUserMenu() {
+    document.getElementById('user-dropdown').classList.toggle('open');
+  }
+  document.addEventListener('click', function(e) {
+    var menu = document.querySelector('.user-menu');
+    if (menu && !menu.contains(e.target)) {
+      document.getElementById('user-dropdown').classList.remove('open');
+    }
+  });
+
+  /* ── Mobile Nav ── */
+  function toggleMobileNav() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+    const btn = document.querySelector('.hamburger');
+    const isOpen = sidebar.classList.toggle('mobile-open');
+    overlay.classList.toggle('mobile-open', isOpen);
+    if (btn) btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  }
+  function closeMobileNav() {
+    document.querySelector('.sidebar').classList.remove('mobile-open');
+    document.querySelector('.sidebar-overlay').classList.remove('mobile-open');
+    var btn = document.querySelector('.hamburger');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  }
+  document.querySelector('.sidebar-overlay').addEventListener('click', closeMobileNav);
+</script>
+</body>
+</html>
